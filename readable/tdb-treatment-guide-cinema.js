@@ -380,13 +380,24 @@ window.TDBTreatmentGuideCard ||= (() => {
     const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')];
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')];
     const images = [...root.querySelectorAll('.tdb-cinema-image')];
+    const photos = [...root.querySelectorAll('[data-tdb-cinema-photo]')];
+    const blurs = photos.map((photo) => photo.querySelector('.tdb-treatment-blur'));
+    const photoBefore = photos.map((photo) => photo.getAttribute('style'));
+    const blurBefore = blurs.map((blur) => blur?.getAttribute('class'));
     const parallax = root.querySelector('[data-tdb-cinema-parallax]');
     const media = root.querySelector('.tdb-cinema-media');
     const progress = root.querySelector('[data-tdb-cinema-progress]');
     const content = root.querySelector('.tdb-cinema-content');
     const parallaxBefore = parallax?.getAttribute('style');
     const progressBefore = progress?.getAttribute('style');
-    if (!track || !stage || choices.length !== 5 || panes.length !== 5 || images.length !== 5)
+    if (
+      !track ||
+      !stage ||
+      choices.length !== 5 ||
+      panes.length !== 5 ||
+      images.length !== 5 ||
+      photos.length !== 5
+    )
       throw Error('Cinema native structure missing');
     const events = new AbortController(),
       { signal } = events;
@@ -430,6 +441,7 @@ window.TDBTreatmentGuideCard ||= (() => {
     let animations = [],
       releaseChrome = null,
       progressAnimation = null,
+      lastProgress = '',
       lastParallax = '';
     const blocked = () => Boolean(window.TDBScrollLock?.active || root.closest('[inert]'));
     const card = window.TDBTreatmentGuideCard.mount(root, active, (direction) =>
@@ -474,7 +486,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         choice.setAttribute('tabindex', index === active ? '0' : '-1');
         // Preserve the native href for no-module fallback; enhanced clicks cancel it.
         panes[index].classList.toggle('w--tab-active', index === active);
-        images[index].style.visibility = index === active ? 'visible' : 'hidden';
+        photos[index].style.visibility = index === active ? 'visible' : 'hidden';
+        blurs[index]?.classList.toggle('is-current', index === active);
       });
       if (next)
         next.innerHTML =
@@ -486,8 +499,13 @@ window.TDBTreatmentGuideCard ||= (() => {
       if (index === active) return;
       const previous = active,
         direction = Math.sign(index - previous);
-      const progressFrom = progress && getComputedStyle(progress).transform;
-      progressAnimation?.cancel();
+      const pose = (i) => ({
+        visible: getComputedStyle(photos[i]).visibility === 'visible',
+        frame: getComputedStyle(photos[i]).transform || 'none',
+        image: getComputedStyle(images[i]).transform || 'none',
+      });
+      const outgoing = pose(previous),
+        incoming = pose(index);
       animations.forEach((animation) => animation.cancel());
       animations = [];
       active = index;
@@ -500,35 +518,63 @@ window.TDBTreatmentGuideCard ||= (() => {
         duration: motion.duration(stage.clientWidth),
         easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
       };
-      if (progress) {
-        const target = `translateX(${index * 100}%)`;
-        progress.style.transform = target;
-        if (animate && !motion.reduced.matches && progress.animate)
-          progressAnimation = progress.animate(
-            [{ transform: progressFrom }, { transform: target }],
-            timing,
-          );
-      }
-      if (animate && !motion.reduced.matches && images[index].animate) {
+      if (animate && !motion.reduced.matches && photos[index].animate) {
+        // Match Services/Treatments: the 140% photo compensates by 30% inside
+        // its travelling crop. Both layers use one clock; adjacent crops blur.
+        const amount = (i) => parseFloat(images[i].getAttribute('data-swiper-parallax-x')) || 30;
         animations.push(
-          images[previous].animate(
+          photos[previous].animate(
             [
-              { transform: 'translateX(0)', visibility: 'visible' },
+              { transform: outgoing.frame, visibility: 'visible' },
               { transform: `translateX(${-direction * 100}%)`, visibility: 'visible' },
             ],
             timing,
           ),
-        );
-        animations.push(
+          images[previous].animate(
+            [
+              { transform: outgoing.image },
+              { transform: `translateX(${direction * amount(previous)}%)` },
+            ],
+            timing,
+          ),
+          photos[index].animate(
+            [
+              {
+                transform: incoming.visible ? incoming.frame : `translateX(${direction * 100}%)`,
+                visibility: 'visible',
+              },
+              { transform: 'translateX(0)', visibility: 'visible' },
+            ],
+            timing,
+          ),
           images[index].animate(
             [
-              { transform: `translateX(${direction * 100}%)`, visibility: 'visible' },
-              { transform: 'translateX(0)', visibility: 'visible' },
+              {
+                transform: incoming.visible
+                  ? incoming.image
+                  : `translateX(${-direction * amount(index)}%)`,
+              },
+              { transform: 'translateX(0)' },
             ],
             timing,
           ),
         );
       }
+    }
+    function updateProgress(position, animate = false) {
+      if (!progress) return;
+      const target = `scaleX(${clamp(position / runway, 0, 1).toFixed(6)})`;
+      if (target === lastProgress) return;
+      const from = getComputedStyle(progress).transform;
+      progressAnimation?.cancel();
+      progressAnimation = null;
+      progress.style.transform = target;
+      lastProgress = target;
+      if (animate && !motion.reduced.matches && progress.animate)
+        progressAnimation = progress.animate([{ transform: from }, { transform: target }], {
+          duration: motion.duration(stage.clientWidth),
+          easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
+        });
     }
     function measure() {
       const rect = track.getBoundingClientRect();
@@ -549,7 +595,9 @@ window.TDBTreatmentGuideCard ||= (() => {
       if (blocked()) return;
       measure();
       select(index);
-      go(start + step * index + Math.min(2, step / 10));
+      const position = step * index + Math.min(2, step / 10);
+      go(start + position);
+      updateProgress(position, true);
     }
     function leave(event) {
       event?.preventDefault();
@@ -580,7 +628,7 @@ window.TDBTreatmentGuideCard ||= (() => {
       else start = track.getBoundingClientRect().top + window.scrollY;
       const position = window.scrollY - start;
       // Entrance parallax is scroll-linked and stops exactly when the stage pins.
-      // The authored 12% overscan keeps the photo covering its 40lvh frame.
+      // The authored 12% overscan keeps the photo covering its native frame.
       if (parallax) {
         const offset = motion.reduced.matches
           ? 0
@@ -601,6 +649,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         const index = clamp(Math.floor(Math.max(0, position) / step), 0, 4);
         select(index);
       }
+      if (!blocked()) updateProgress(position);
     }
     function schedule() {
       if (!raf && !disposed && visible && !document.hidden) raf = requestAnimationFrame(frame);
@@ -687,7 +736,6 @@ window.TDBTreatmentGuideCard ||= (() => {
     );
     intersection.observe(track);
     syncTabs();
-    if (progress) progress.style.transform = `translateX(${active * 100}%)`;
     warm(active);
     measure();
     schedule();
@@ -710,6 +758,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         card.destroy();
         choices.forEach((choice, index) => restore(choice, attrs[index]));
         images.forEach((image, index) => restore(image, imageBefore[index]));
+        photos.forEach((photo, index) => restore(photo, [['style', photoBefore[index]]]));
+        blurs.forEach((blur, index) => blur && restore(blur, [['class', blurBefore[index]]]));
         if (parallax) restore(parallax, [['style', parallaxBefore]]);
         if (progress) restore(progress, [['style', progressBefore]]);
         restore(tabs, tabAttrs);

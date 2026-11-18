@@ -41,7 +41,7 @@
             "margin": "0px",
             "justify-content": "flex-start",
             "align-items": "center",
-            "bottom": "calc(5rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
+            "bottom": "calc(7rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
           }
         }
       }
@@ -106,6 +106,7 @@
             "min-height": "0px",
             "grid-template-columns": "minmax(0, 1fr)",
             "grid-template-rows": "minmax(0, 1fr)",
+            "background-image": "linear-gradient(180deg, #000000 0%, #161616 55%, #222222 100%)",
             "grid-column": "1",
             "grid-row": "2"
           }
@@ -129,15 +130,15 @@
             "overflow-y": "auto",
             "width": "auto",
             "min-height": "0px",
-            "margin-top": "1.75rem",
+            "margin-top": "1.25rem",
             "margin-right": "5vw",
-            "margin-bottom": "calc(10rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))",
             "margin-left": "5vw",
             "align-content": "start",
-            "grid-row-gap": "1rem",
-            "grid-template-columns": "minmax(0, 46rem)",
-            "grid-template-rows": "max-content max-content max-content",
-            "height": "calc(100% - 11.75rem - 100lvh + 100svh - env(safe-area-inset-bottom, 0px))"
+            "grid-row-gap": "0px",
+            "height": "calc(100% - 13.25rem - 100lvh + 100svh - env(safe-area-inset-bottom, 0px))",
+            "margin-bottom": "calc(12rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))",
+            "grid-template-columns": "minmax(0, 70rem)",
+            "grid-template-rows": "max-content"
           }
         }
       }
@@ -256,6 +257,23 @@
       }
     },
     {
+      "id": "bc276f70-ebc6-44d3-a4cd-ca3e53e5f509",
+      "name": "tdb-cinema-outro-space",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".tdb-cinema-outro-space",
+      "properties": {
+        "base": {
+          "properties": {
+            "width": "100%",
+            "height": "5.5rem",
+            "background-color": "#222222"
+          }
+        }
+      }
+    },
+    {
       "id": "da5d19e2-0af5-262d-7f10-ff539171a679",
       "name": "tdb-cinema-eyebrow",
       "isFromLibrary": false,
@@ -334,15 +352,19 @@
         "base": {
           "properties": {
             "position": "absolute",
+            "left": "-20%",
+            "top": "0px",
+            "right": "-20%",
+            "bottom": "0px",
             "z-index": "0",
             "display": "block",
-            "width": "100%",
+            "visibility": "inherit",
+            "width": "140%",
             "height": "100%",
             "max-width": "none",
             "object-fit": "cover",
             "object-position": "50% 35%",
-            "inset": "0px",
-            "visibility": "hidden"
+            "inset": "0px -20%"
           }
         }
       }
@@ -363,10 +385,12 @@
             "width": "auto",
             "height": "auto",
             "min-height": "0px",
+            "align-content": "start",
+            "grid-row-gap": ".75rem",
+            "grid-template-columns": "minmax(0, 1fr)",
             "pointer-events": "none",
-            "grid-area": "1 / 1 / -1 / 2",
-            "grid-template-rows": "subgrid",
-            "grid-template-columns": "minmax(0, 1fr)"
+            "grid-area": "1 / 1 / 2 / 2",
+            "grid-template-rows": "max-content max-content max-content"
           }
         }
       }
@@ -383,12 +407,14 @@
           "properties": {
             "position": "absolute",
             "left": "3vw",
+            "bottom": "calc(1.5rem + 100lvh - 100svh + env(safe-area-inset-bottom,0px))",
             "z-index": "6",
-            "width": "18.8vw",
+            "width": "94vw",
             "height": "1px",
             "background-color": "#f9f2e6",
             "pointer-events": "none",
-            "bottom": "calc(1.5rem + 100lvh - 100svh + env(safe-area-inset-bottom,0px))"
+            "transform": "scaleX(0)",
+            "transform-origin": "0% 50%"
           }
         }
       }
@@ -432,11 +458,11 @@
             "width": "100%",
             "height": "100lvh",
             "min-height": "0px",
+            "grid-template-columns": "minmax(0, 1fr)",
             "background-color": "#000000",
             "color": "#f9f2e6",
             "isolation": "isolate",
-            "grid-template-columns": "minmax(0, 1fr)",
-            "grid-template-rows": "40lvh minmax(0, 1fr)"
+            "grid-template-rows": "min(60lvh, calc(100lvh - 25rem)) minmax(0, 1fr)"
           }
         }
       }
@@ -529,6 +555,30 @@
             "color": "#f9f2e6",
             "letter-spacing": ".1em",
             "margin": "0px"
+          }
+        }
+      }
+    },
+    {
+      "id": "b6f1535e-34a1-6b62-4f77-fb0ce82aa679",
+      "name": "tdb-cinema-photo",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".tdb-cinema-photo",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "absolute",
+            "width": "100%",
+            "height": "100%",
+            "top": "0",
+            "right": "0",
+            "bottom": "0",
+            "left": "0",
+            "overflow-x": "hidden",
+            "overflow-y": "hidden",
+            "visibility": "hidden"
           }
         }
       }
@@ -660,15 +710,15 @@
         "base": {
           "properties": {
             "position": "absolute",
-            "left": "5vw",
-            "right": "auto",
+            "left": "auto",
+            "top": "calc(2.5rem + env(safe-area-inset-top, 0px))",
+            "right": "5vw",
             "z-index": "5",
             "display": "flex",
             "align-items": "baseline",
             "grid-column-gap": ".65rem",
             "pointer-events": "none",
-            "color": "#f9f2e6",
-            "top": "calc(2.5rem + env(safe-area-inset-top, 0px))"
+            "color": "#f9f2e6"
           }
         }
       }
@@ -3769,92 +3819,307 @@
                                   {
                                     "id": {
                                       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
+                                      "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa678"
                                     },
-                                    "type": "Image",
+                                    "type": "Block",
                                     "styleNames": [
-                                      "tdb-cinema-image"
+                                      "tdb-cinema-photo"
                                     ],
                                     "attributes": {
-                                      "data-tdb-guide-image": "0"
+                                      "data-tdb-cinema-photo": "0"
                                     },
                                     "settings": {
+                                      "tag": "div",
                                       "visibility": true,
-                                      "assetId": "6af5a067a3d3440e03054be7",
-                                      "altText": "3Shape TRIOS 6 scanner used for detailed digital treatment planning."
-                                    }
+                                      "block": {
+                                        "tag": "div"
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
+                                        },
+                                        "type": "Image",
+                                        "styleNames": [
+                                          "tdb-cinema-image"
+                                        ],
+                                        "attributes": {
+                                          "data-tdb-guide-image": "0",
+                                          "data-swiper-parallax-x": "30%"
+                                        },
+                                        "settings": {
+                                          "visibility": true,
+                                          "assetId": "6af5a067a3d3440e03054be7",
+                                          "altText": "3Shape TRIOS 6 scanner used for detailed digital treatment planning."
+                                        }
+                                      },
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa677"
+                                        },
+                                        "type": "Block",
+                                        "styleNames": [
+                                          "tdb-treatment-blur"
+                                        ],
+                                        "attributes": {
+                                          "aria-hidden": "true"
+                                        },
+                                        "settings": {
+                                          "tag": "div",
+                                          "visibility": true,
+                                          "block": {
+                                            "tag": "div"
+                                          }
+                                        }
+                                      }
+                                    ]
                                   },
                                   {
                                     "id": {
                                       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "1f993975-34cc-19d9-15ec-8c000de58cb3"
+                                      "element": "42ae0c31-831e-d948-3fd2-656214ee8263"
                                     },
-                                    "type": "Image",
+                                    "type": "Block",
                                     "styleNames": [
-                                      "tdb-cinema-image"
+                                      "tdb-cinema-photo"
                                     ],
                                     "attributes": {
-                                      "data-tdb-guide-image": "1"
+                                      "data-tdb-cinema-photo": "1"
                                     },
                                     "settings": {
+                                      "tag": "div",
                                       "visibility": true,
-                                      "assetId": "6afd92a79bb3ea4d71dbc1e2",
-                                      "altText": "Dr Keely Thorne reviewing a digital smile design at The Dental Barns."
-                                    }
+                                      "block": {
+                                        "tag": "div"
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "1f993975-34cc-19d9-15ec-8c000de58cb3"
+                                        },
+                                        "type": "Image",
+                                        "styleNames": [
+                                          "tdb-cinema-image"
+                                        ],
+                                        "attributes": {
+                                          "data-tdb-guide-image": "1",
+                                          "data-swiper-parallax-x": "30%"
+                                        },
+                                        "settings": {
+                                          "visibility": true,
+                                          "assetId": "6afd92a79bb3ea4d71dbc1e2",
+                                          "altText": "Dr Keely Thorne reviewing a digital smile design at The Dental Barns."
+                                        }
+                                      },
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "42ae0c31-831e-d948-3fd2-656214ee8262"
+                                        },
+                                        "type": "Block",
+                                        "styleNames": [
+                                          "tdb-treatment-blur"
+                                        ],
+                                        "attributes": {
+                                          "aria-hidden": "true"
+                                        },
+                                        "settings": {
+                                          "tag": "div",
+                                          "visibility": true,
+                                          "block": {
+                                            "tag": "div"
+                                          }
+                                        }
+                                      }
+                                    ]
                                   },
                                   {
                                     "id": {
                                       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
+                                      "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e7a"
                                     },
-                                    "type": "Image",
+                                    "type": "Block",
                                     "styleNames": [
-                                      "tdb-cinema-image"
+                                      "tdb-cinema-photo"
                                     ],
                                     "attributes": {
-                                      "data-tdb-guide-image": "2"
+                                      "data-tdb-cinema-photo": "2"
                                     },
                                     "settings": {
+                                      "tag": "div",
                                       "visibility": true,
-                                      "assetId": "696a3cd828033c589019ed7f",
-                                      "altText": "Personal dental care kits at The Dental Barns."
-                                    }
+                                      "block": {
+                                        "tag": "div"
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
+                                        },
+                                        "type": "Image",
+                                        "styleNames": [
+                                          "tdb-cinema-image"
+                                        ],
+                                        "attributes": {
+                                          "data-tdb-guide-image": "2",
+                                          "data-swiper-parallax-x": "30%"
+                                        },
+                                        "settings": {
+                                          "visibility": true,
+                                          "assetId": "696a3cd828033c589019ed7f",
+                                          "altText": "Personal dental care kits at The Dental Barns."
+                                        }
+                                      },
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e79"
+                                        },
+                                        "type": "Block",
+                                        "styleNames": [
+                                          "tdb-treatment-blur"
+                                        ],
+                                        "attributes": {
+                                          "aria-hidden": "true"
+                                        },
+                                        "settings": {
+                                          "tag": "div",
+                                          "visibility": true,
+                                          "block": {
+                                            "tag": "div"
+                                          }
+                                        }
+                                      }
+                                    ]
                                   },
                                   {
                                     "id": {
                                       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
+                                      "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0e"
                                     },
-                                    "type": "Image",
+                                    "type": "Block",
                                     "styleNames": [
-                                      "tdb-cinema-image"
+                                      "tdb-cinema-photo"
                                     ],
                                     "attributes": {
-                                      "data-tdb-guide-image": "3"
+                                      "data-tdb-cinema-photo": "3"
                                     },
                                     "settings": {
+                                      "tag": "div",
                                       "visibility": true,
-                                      "assetId": "6afd92a713a8ba591963e9af",
-                                      "altText": "Dr Keely Thorne at The Dental Barns."
-                                    }
+                                      "block": {
+                                        "tag": "div"
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
+                                        },
+                                        "type": "Image",
+                                        "styleNames": [
+                                          "tdb-cinema-image"
+                                        ],
+                                        "attributes": {
+                                          "data-tdb-guide-image": "3",
+                                          "data-swiper-parallax-x": "30%"
+                                        },
+                                        "settings": {
+                                          "visibility": true,
+                                          "assetId": "6afd92a713a8ba591963e9af",
+                                          "altText": "Dr Keely Thorne at The Dental Barns."
+                                        }
+                                      },
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0d"
+                                        },
+                                        "type": "Block",
+                                        "styleNames": [
+                                          "tdb-treatment-blur"
+                                        ],
+                                        "attributes": {
+                                          "aria-hidden": "true"
+                                        },
+                                        "settings": {
+                                          "tag": "div",
+                                          "visibility": true,
+                                          "block": {
+                                            "tag": "div"
+                                          }
+                                        }
+                                      }
+                                    ]
                                   },
                                   {
                                     "id": {
                                       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "1504bae7-863d-d8cf-cf93-a7661cb27642"
+                                      "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aef"
                                     },
-                                    "type": "Image",
+                                    "type": "Block",
                                     "styleNames": [
-                                      "tdb-cinema-image"
+                                      "tdb-cinema-photo"
                                     ],
                                     "attributes": {
-                                      "data-tdb-guide-image": "4"
+                                      "data-tdb-cinema-photo": "4"
                                     },
                                     "settings": {
+                                      "tag": "div",
                                       "visibility": true,
-                                      "assetId": "6afd92a728122f76dc772722",
-                                      "altText": "The private patient lounge at The Dental Barns."
-                                    }
+                                      "block": {
+                                        "tag": "div"
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "1504bae7-863d-d8cf-cf93-a7661cb27642"
+                                        },
+                                        "type": "Image",
+                                        "styleNames": [
+                                          "tdb-cinema-image"
+                                        ],
+                                        "attributes": {
+                                          "data-tdb-guide-image": "4",
+                                          "data-swiper-parallax-x": "30%"
+                                        },
+                                        "settings": {
+                                          "visibility": true,
+                                          "assetId": "6afd92a728122f76dc772722",
+                                          "altText": "The private patient lounge at The Dental Barns."
+                                        }
+                                      },
+                                      {
+                                        "id": {
+                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                          "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aee"
+                                        },
+                                        "type": "Block",
+                                        "styleNames": [
+                                          "tdb-treatment-blur"
+                                        ],
+                                        "attributes": {
+                                          "aria-hidden": "true"
+                                        },
+                                        "settings": {
+                                          "tag": "div",
+                                          "visibility": true,
+                                          "block": {
+                                            "tag": "div"
+                                          }
+                                        }
+                                      }
+                                    ]
                                   }
                                 ]
                               },
@@ -5626,6 +5891,26 @@
       {
         "id": {
           "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "bc276f70-ebc6-44d3-a4cd-ca3e53e5f508"
+        },
+        "type": "Block",
+        "styleNames": [
+          "tdb-cinema-outro-space"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "tag": "div",
+          "visibility": true,
+          "block": {
+            "tag": "div"
+          }
+        }
+      },
+      {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
           "element": "f254b7bb-4abf-a19d-54ea-6ba17a9c345e"
         },
         "type": "Block",
@@ -5710,5 +5995,31 @@
         }
       }
     }
-  ]
+  ],
+  "photoFrames": [
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa678"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "42ae0c31-831e-d948-3fd2-656214ee8263"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e7a"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0e"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aef"
+    }
+  ],
+  "outroSpacer": {
+    "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+    "element": "bc276f70-ebc6-44d3-a4cd-ca3e53e5f508"
+  }
 }

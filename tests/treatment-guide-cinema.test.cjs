@@ -55,7 +55,29 @@ function setup() {
   const parallax = w.document.createElement('div');
   parallax.setAttribute('data-tdb-cinema-parallax', '');
   media.append(parallax);
-  root.querySelectorAll('.tdb-cinema-image').forEach((image) => parallax.append(image));
+  const photoMoves = [];
+  root.querySelectorAll('.tdb-cinema-image').forEach((image, index) => {
+    const photo = w.document.createElement('div');
+    photo.setAttribute('data-tdb-cinema-photo', String(index));
+    image.setAttribute('data-swiper-parallax-x', '30%');
+    const blur = w.document.createElement('div');
+    blur.className = 'tdb-treatment-blur';
+    photo.append(image, blur);
+    parallax.append(photo);
+    for (const [kind, node] of [
+      ['crop', photo],
+      ['image', image],
+    ])
+      node.animate = (keyframes, timing) => {
+        const record = { index, kind, keyframes, timing, cancelled: false };
+        photoMoves.push(record);
+        return {
+          cancel() {
+            record.cancelled = true;
+          },
+        };
+      };
+  });
   stage.prepend(media);
   media.getBoundingClientRect = () => ({ height: height * 0.4 });
   const progress = w.document.createElement('div');
@@ -138,6 +160,7 @@ function setup() {
     parallax,
     progress,
     progressMoves,
+    photoMoves,
     get y() {
       return y;
     },
@@ -167,18 +190,61 @@ test('image entrance parallax stops at the pin and the underline uses shared tra
   t.root.querySelector('[data-tdb-guide-choice="3"]').click();
   t.flush();
   assert.equal(t.parallax.style.transform, 'translateY(0.000px)');
-  assert.equal(t.progress.style.transform, 'translateX(300%)');
+  assert.equal(t.progress.style.transform, 'scaleX(0.600625)');
   assert.equal(t.progressMoves.at(-1).timing.duration, 500);
-  assert.equal(t.progressMoves.at(-1).keyframes.at(-1).transform, 'translateX(300%)');
+  assert.equal(t.progressMoves.at(-1).keyframes.at(-1).transform, 'scaleX(0.600625)');
   t.root.querySelector('[data-tdb-guide-choice="1"]').click();
   t.flush();
   assert.equal(t.progressMoves.at(-2).cancelled, true);
-  assert.equal(t.progress.style.transform, 'translateX(100%)');
-  assert.equal(t.root.querySelectorAll('.tdb-cinema-image')[1].style.visibility, 'visible');
+  assert.equal(t.progress.style.transform, 'scaleX(0.200625)');
+  assert.equal(t.root.querySelectorAll('[data-tdb-cinema-photo]')[1].style.visibility, 'visible');
   t.api.destroy();
   assert.equal(t.parallax.getAttribute('style'), null);
   assert.equal(t.progress.getAttribute('style'), null);
   assert.equal(t.frames.size, 0);
+  t.w.close();
+});
+
+test('the progress line creeps during a reading beat before the next chapter snaps', () => {
+  const t = setup();
+  t.scroll(1320);
+  assert.equal(t.root.dataset.tdbCinemaChapter, '1');
+  assert.equal(t.progress.style.transform, 'scaleX(0.100000)');
+  t.scroll(1600);
+  assert.equal(t.root.dataset.tdbCinemaChapter, '1');
+  assert.equal(t.progress.style.transform, 'scaleX(0.187500)');
+  t.scroll(1640);
+  assert.equal(t.root.dataset.tdbCinemaChapter, '2');
+  assert.equal(t.progress.style.transform, 'scaleX(0.200000)');
+  t.scroll(1320);
+  assert.equal(t.progress.style.transform, 'scaleX(0.100000)');
+  t.scroll(4200);
+  assert.equal(t.progress.style.transform, 'scaleX(1.000000)');
+  assert.equal(t.frames.size, 0);
+  t.close();
+});
+
+test('photos use the existing carousel parallax ratio, shared clock and adjacent blur state', () => {
+  const t = setup();
+  t.root.querySelector('[data-tdb-guide-choice="1"]').click();
+  t.flush();
+  const outgoingCrop = t.photoMoves.find((m) => m.index === 0 && m.kind === 'crop');
+  const outgoingImage = t.photoMoves.find((m) => m.index === 0 && m.kind === 'image');
+  const incomingImage = t.photoMoves.find((m) => m.index === 1 && m.kind === 'image');
+  assert.equal(outgoingCrop.keyframes.at(-1).transform, 'translateX(-100%)');
+  assert.equal(outgoingImage.keyframes.at(-1).transform, 'translateX(30%)');
+  assert.equal(incomingImage.keyframes[0].transform, 'translateX(-30%)');
+  assert.equal(outgoingCrop.timing, outgoingImage.timing);
+  assert.equal(incomingImage.timing.duration, 500);
+  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="0"] .is-current'), null);
+  assert.ok(t.root.querySelector('[data-tdb-cinema-photo="1"] .is-current'));
+  t.root.querySelector('[data-tdb-guide-choice="0"]').click();
+  t.flush();
+  assert.equal(outgoingCrop.cancelled, true);
+  assert.equal(outgoingImage.cancelled, true);
+  t.api.destroy();
+  assert.equal(t.root.querySelector('[data-tdb-cinema-photo]').getAttribute('style'), null);
+  assert.equal(t.root.querySelector('.tdb-treatment-blur.is-current'), null);
   t.w.close();
 });
 test('native vertical position reaches every chapter, holds the fifth, and supports reversal', () => {
