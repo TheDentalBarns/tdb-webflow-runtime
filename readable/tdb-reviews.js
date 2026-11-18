@@ -34,7 +34,7 @@
   });
 })();
 
-/* TDB native reviews v3.14.1. Shared selection policy and settlement; native choreography. */
+/* TDB native reviews v3.14.2. Shared selection policy and settlement; native choreography. */
 (() => {
   'use strict';
   if (window.TDBReviews) return;
@@ -966,11 +966,15 @@
       reflectedIndex = -1;
       settledSlide = null;
       phase = wasOpen ? 'opening' : 'closed';
-      createSwiper();
-      swiper.allowTouchMove = !filterOpen;
-      reflect();
       if (landscape) readingPane.scrollTop = 0;
-      if (wasOpen) reveal(0);
+      // A closed drawer has no measurable width. Build its replacement slider
+      // in onOpen, after the shared drawer reveals the shell, using the requested ID.
+      if (wasOpen) {
+        createSwiper();
+        swiper.allowTouchMove = !filterOpen;
+        reflect();
+        reveal(0);
+      }
       updateFilterOptions();
     }
 
@@ -1246,6 +1250,6 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviews = Object.freeze({ version: '3.14.1', mount });
+  window.TDBReviews = Object.freeze({ version: '3.14.2', mount });
   window.TDBSwiper?.register('review-drawer', window.TDBReviews);
 })();
