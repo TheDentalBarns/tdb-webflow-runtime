@@ -433,19 +433,19 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 [data-tdb-guide-cinema] .tdb-cinema-image{backface-visibility:hidden}
 [data-tdb-guide-cinema] .tdb-cinema-details[open]{position:absolute;inset:5rem 5vw 10rem;height:auto;display:block;overflow:auto;z-index:6;background:#222;padding:1.5rem}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"]{visibility:visible}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.2)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="1"].w--tab-active) [data-tdb-cinema-photo="1"]{visibility:visible}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="1"].w--tab-active) [data-tdb-cinema-photo="1"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="1"].w--tab-active) [data-tdb-cinema-photo="1"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="1"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.4)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="2"].w--tab-active) [data-tdb-cinema-photo="2"]{visibility:visible}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="2"].w--tab-active) [data-tdb-cinema-photo="2"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="2"].w--tab-active) [data-tdb-cinema-photo="2"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="2"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.6)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="3"].w--tab-active) [data-tdb-cinema-photo="3"]{visibility:visible}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="3"].w--tab-active) [data-tdb-cinema-photo="3"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="3"].w--tab-active) [data-tdb-cinema-photo="3"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="3"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.8)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="4"].w--tab-active) [data-tdb-cinema-photo="4"]{visibility:visible}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="4"].w--tab-active) [data-tdb-cinema-photo="4"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="4"].w--tab-active) [data-tdb-cinema-photo="4"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="4"].w--tab-active) .tdb-cinema-progress{transform:scaleX(1)}
 
 /* Native Designer classes own layout; shared disclosures and motion own state. */

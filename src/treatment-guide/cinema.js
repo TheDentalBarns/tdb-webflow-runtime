@@ -14,6 +14,9 @@
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')];
     const images = [...root.querySelectorAll('.tdb-cinema-image')];
     const photos = [...root.querySelectorAll('[data-tdb-cinema-photo]')];
+    const rail = root.querySelector('[data-tdb-cinema-rail]');
+    const outro = root.querySelector('.tdb-cinema-outro-space');
+    const railBefore = rail?.getAttribute('style');
     const blurs = photos.map((photo) => photo.querySelector('.tdb-treatment-blur'));
     const photoBefore = photos.map((photo) => photo.getAttribute('style'));
     const blurBefore = blurs.map((blur) => blur?.getAttribute('class'));
@@ -24,9 +27,12 @@
     const content = root.querySelector('.tdb-cinema-content');
     const parallaxBefore = parallax?.getAttribute('style');
     const progressBefore = progress?.getAttribute('style');
+    const blurClockBefore = media?.style.getPropertyValue('--tdb-parallax-duration');
+    const blurClockPriority = media?.style.getPropertyPriority('--tdb-parallax-duration');
     if (
       !track ||
       !stage ||
+      !rail ||
       choices.length !== 5 ||
       panes.length !== 5 ||
       images.length !== 5 ||
@@ -71,12 +77,17 @@
       step = 1,
       runway = 1,
       stageHeight = 1,
-      mediaHeight = 0;
+      mediaHeight = 0,
+      outroHeight = 0;
     let animations = [],
       releaseChrome = null,
       progressAnimation = null,
       lastProgress = '',
       lastParallax = '';
+    let photoIndex = active,
+      photoRequest = 0;
+    const imageJobs = [],
+      decodedImages = [];
     const blocked = () => Boolean(window.TDBScrollLock?.active || root.closest('[inert]'));
     const card = window.TDBTreatmentGuideCard.mount(root, active, (direction) =>
       manual(clamp(active + direction, 0, 4)),
@@ -100,18 +111,46 @@
         image.alt = 'EMS AIRFLOW Prophylaxis Master used for hygiene care at The Dental Barns.';
       }
       // Cropping stays Designer-owned so every photo reaches the top of the stage.
-      image.loading = index < 2 ? 'eager' : 'lazy';
+      // This module is proximity/intent gated: warm all five before a fast scroll.
+      image.loading = 'eager';
       choices[index].setAttribute(
         'aria-label',
         `${index + 1}. ${panes[index].querySelector('[data-tdb-guide-title]').textContent.trim()}`,
       );
     });
-    function warm(index) {
-      for (const i of [index, index + 1])
-        if (images[i]) {
-          images[i].loading = 'eager';
-          images[i].decode?.().catch(() => {});
-        }
+    const imageReady = (index) => images[index].complete && images[index].naturalWidth > 0;
+    function loadImage(index) {
+      if (decodedImages[index]) return Promise.resolve(true);
+      if (!images[index].decode && imageReady(index)) {
+        decodedImages[index] = true;
+        return Promise.resolve(true);
+      }
+      if (imageJobs[index]) return imageJobs[index];
+      const image = images[index];
+      image.loading = 'eager';
+      const decode = () =>
+        image.decode
+          ? image.decode()
+          : new Promise((resolve, reject) => {
+              image.addEventListener('load', resolve, { once: true, signal });
+              image.addEventListener('error', reject, { once: true, signal });
+            });
+      imageJobs[index] = decode()
+        .catch(async (error) => {
+          if (disposed) throw error;
+          const fallback = imageBefore[index].find(([name]) => name === 'src')?.[1];
+          if (!fallback || image.getAttribute('src') === fallback) throw error;
+          image.src = fallback;
+          image.removeAttribute('srcset');
+          image.removeAttribute('sizes');
+          await decode();
+        })
+        .then(() => (decodedImages[index] = imageReady(index)))
+        .catch(() => false);
+      return imageJobs[index];
+    }
+    function warm() {
+      images.forEach((image, index) => loadImage(index));
     }
     function syncTabs() {
       choices.forEach((choice, index) => {
@@ -120,90 +159,75 @@
         choice.setAttribute('tabindex', index === active ? '0' : '-1');
         // Preserve the native href for no-module fallback; enhanced clicks cancel it.
         panes[index].classList.toggle('w--tab-active', index === active);
-        photos[index].style.visibility = index === active ? 'visible' : 'hidden';
-        // Explicit child visibility avoids stale inherited values when a
-        // composited crop is interrupted and becomes current again.
-        images[index].style.visibility = index === active ? 'visible' : 'hidden';
-        if (blurs[index]) blurs[index].style.visibility = index === active ? 'visible' : 'hidden';
-        blurs[index]?.classList.toggle('is-current', index === active);
       });
       if (next)
         next.innerHTML =
           active === 4 ? 'Continue reading <span aria-hidden="true">↓</span>' : nextBefore;
       root.dataset.tdbCinemaChapter = String(active + 1);
     }
-    function select(index, animate = true) {
-      index = clamp(index, 0, 4);
-      if (index === active) return;
-      const previous = active,
-        direction = Math.sign(index - previous);
-      const pose = (i) => ({
-        visible: getComputedStyle(photos[i]).visibility === 'visible',
-        frame: getComputedStyle(photos[i]).transform || 'none',
-        image: getComputedStyle(images[i]).transform || 'none',
-      });
-      const outgoing = pose(previous),
-        incoming = pose(index);
+    function travelPhotos(index, animate) {
+      // One moving strip preserves coverage when a second chapter arrives before
+      // the first transition has finished. Individual crops never disappear.
+      const from = getComputedStyle(rail).transform || 'none';
+      const imageFrom = images.map((image) => getComputedStyle(image).transform || 'none');
       animations.forEach((animation) => animation.cancel());
       animations = [];
-      active = index;
-      // A short phone may scroll the copy; every new chapter starts at its heading.
-      if (content) content.scrollTop = 0;
-      warm(index);
-      syncTabs();
-      card.update(index, direction, animate);
       const timing = {
         duration: motion.duration(stage.clientWidth),
         easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
       };
-      if (animate && !motion.reduced.matches && photos[index].animate) {
-        // Match Services/Treatments: the 140% photo compensates by 30% inside
-        // its travelling crop. Both layers use one clock; adjacent crops blur.
-        const amount = (i) => parseFloat(images[i].getAttribute('data-swiper-parallax-x')) || 30;
-        animations.push(
-          photos[previous].animate(
-            [
-              { transform: outgoing.frame, visibility: 'visible' },
-              { transform: `translateX(${-direction * 100}%)`, visibility: 'visible' },
-            ],
-            timing,
-          ),
-          images[previous].animate(
-            [
-              { transform: outgoing.image, visibility: 'visible' },
-              { transform: `translateX(${direction * amount(previous)}%)`, visibility: 'visible' },
-            ],
-            timing,
-          ),
-          photos[index].animate(
-            [
-              {
-                transform: incoming.visible ? incoming.frame : `translateX(${direction * 100}%)`,
-                visibility: 'visible',
-              },
-              { transform: 'translateX(0)', visibility: 'visible' },
-            ],
-            timing,
-          ),
-          images[index].animate(
-            [
-              {
-                transform: incoming.visible
-                  ? incoming.image
-                  : `translateX(${-direction * amount(index)}%)`,
-                visibility: 'visible',
-              },
-              { transform: 'translateX(0)', visibility: 'visible' },
-            ],
-            timing,
-          ),
-        );
-        for (const i of [previous, index])
-          if (blurs[i]?.animate)
-            animations.push(
-              blurs[i].animate([{ visibility: 'visible' }, { visibility: 'visible' }], timing),
-            );
-      }
+      const target = 'translateX(' + -index * 100 + '%)';
+      rail.style.transform = target;
+      const moving = animate && !motion.reduced.matches && rail.animate;
+      if (moving)
+        animations.push(rail.animate([{ transform: from }, { transform: target }], timing));
+      photos.forEach((photo, i) => {
+        photo.style.transform = 'translateX(' + i * 100 + '%)';
+        photo.style.visibility = 'visible';
+        images[i].style.visibility = 'visible';
+        const amount = parseFloat(images[i].getAttribute('data-swiper-parallax-x')) || 30;
+        const imageTarget = 'translateX(' + clamp(index - i, -1, 1) * amount + '%)';
+        images[i].style.transform = imageTarget;
+        if (moving)
+          animations.push(
+            images[i].animate(
+              [
+                { transform: imageFrom[i], visibility: 'visible' },
+                { transform: imageTarget, visibility: 'visible' },
+              ],
+              timing,
+            ),
+          );
+        if (blurs[i]) {
+          blurs[i].style.visibility = 'visible';
+          blurs[i].classList.toggle('is-current', i === index);
+        }
+      });
+      photoIndex = index;
+      root.dataset.tdbCinemaPhoto = String(index + 1);
+    }
+    function requestPhoto(index, animate) {
+      const request = ++photoRequest;
+      const needed = Array.from(
+        { length: Math.abs(index - photoIndex) + 1 },
+        (_, n) => Math.min(index, photoIndex) + n,
+      );
+      if (needed.every((i) => decodedImages[i])) return travelPhotos(index, animate);
+      // Retain the last rendered photograph until every crossed crop can paint.
+      Promise.all(needed.map(loadImage)).then((ready) => {
+        if (!disposed && request === photoRequest && ready.every(Boolean))
+          travelPhotos(index, animate);
+      });
+    }
+    function select(index, animate = true) {
+      index = clamp(index, 0, 4);
+      if (index === active) return;
+      const direction = Math.sign(index - active);
+      active = index;
+      if (content) content.scrollTop = 0;
+      syncTabs();
+      card.update(index, direction, animate);
+      requestPhoto(index, animate);
     }
     function updateProgress(position, animate = false) {
       if (!progress) return;
@@ -225,6 +249,12 @@
       start = rect.top + window.scrollY;
       stageHeight = stage.getBoundingClientRect().height;
       mediaHeight = media?.getBoundingClientRect().height || 0;
+      outroHeight = outro?.getBoundingClientRect().height || 0;
+      // The exact shared Services/Treatments blur clock and control easing.
+      media?.style.setProperty(
+        '--tdb-parallax-duration',
+        motion.duration(stage.clientWidth) + 'ms',
+      );
       runway = Math.max(1, rect.height - stageHeight);
       // Five equal reading beats, including a full hold for the last chapter.
       step = runway / 5;
@@ -247,7 +277,7 @@
       event?.preventDefault();
       if (blocked()) return;
       measure();
-      go(start + track.getBoundingClientRect().height);
+      go(start + track.getBoundingClientRect().height + outroHeight);
       releaseChrome?.();
       releaseChrome = null;
       const target = root.nextElementSibling;
@@ -283,9 +313,10 @@
           lastParallax = value;
         }
       }
-      const pinned = position >= -1 && position < runway;
-      if (pinned && !releaseChrome) releaseChrome = window.TDBSiteChrome?.acquire();
-      else if (!pinned && releaseChrome) {
+      const touchesViewport =
+        position > -window.innerHeight && position < runway + stageHeight + outroHeight;
+      if (touchesViewport && !releaseChrome) releaseChrome = window.TDBSiteChrome?.acquire();
+      else if (!touchesViewport && releaseChrome) {
         releaseChrome();
         releaseChrome = null;
       }
@@ -379,9 +410,11 @@
       { rootMargin: '100% 0px' },
     );
     intersection.observe(track);
+    root.dataset.tdbCinemaReady = '';
     syncTabs();
-    warm(active);
     measure();
+    travelPhotos(active, false);
+    warm();
     schedule();
     const restore = (node, entries) =>
       entries.forEach(([name, value]) =>
@@ -412,6 +445,12 @@
             ]),
         );
         if (parallax) restore(parallax, [['style', parallaxBefore]]);
+        restore(rail, [['style', railBefore]]);
+        if (blurClockBefore)
+          media?.style.setProperty('--tdb-parallax-duration', blurClockBefore, blurClockPriority);
+        else media?.style.removeProperty('--tdb-parallax-duration');
+        delete root.dataset.tdbCinemaReady;
+        delete root.dataset.tdbCinemaPhoto;
         if (progress) restore(progress, [['style', progressBefore]]);
         restore(tabs, tabAttrs);
         if (tabConfig) Object.assign(tabConfig, configBefore);

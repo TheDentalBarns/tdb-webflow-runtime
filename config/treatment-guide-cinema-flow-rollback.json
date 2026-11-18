@@ -712,6 +712,71 @@
         "creation_position": "append",
         "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
       }
+    },
+    {
+      "label": "Restore original small caps class",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "20de4109-4a5d-d20e-0f45-28f68f73333c"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "text-style-tagline-restored"
+        ]
+      }
+    },
+    {
+      "label": "Restore original small caps class",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "006177d9-93ed-a9d3-898c-6856e431238f"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "text-style-tagline-restored"
+        ]
+      }
+    },
+    {
+      "label": "Restore original small caps class",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "27e5fa04-9620-0672-5357-69779e7258d4"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "text-style-tagline-restored"
+        ]
+      }
+    },
+    {
+      "label": "Restore original small caps class",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "99f1fe61-e04c-7e55-6261-886ec7699ad5"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "text-style-tagline-restored"
+        ]
+      }
+    },
+    {
+      "label": "Restore original small caps class",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "b17b1e5c-3c60-5ddf-5d25-82c7b6adba8d"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "text-style-tagline-restored"
+        ]
+      }
     }
   ],
   "removeAfterMovingImages": [
@@ -738,6 +803,10 @@
     {
       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
       "element": "bc276f70-ebc6-44d3-a4cd-ca3e53e5f508"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "6d594dbd-69ff-d419-d083-37719bd6a52f"
     }
   ]
 }

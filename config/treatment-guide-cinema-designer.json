@@ -283,7 +283,11 @@
       "properties": {
         "base": {
           "properties": {
-            "color": "#f9f2e6",
+            "display": "inline-block",
+            "color": "rgba(249,242,230,.55)",
+            "font-size": "0.875rem",
+            "letter-spacing": "0.0875rem",
+            "text-transform": "uppercase",
             "margin": "0px"
           }
         }
@@ -611,6 +615,25 @@
             "text-decoration": "none",
             "text-transform": "uppercase",
             "white-space": "nowrap"
+          }
+        }
+      }
+    },
+    {
+      "id": "6d594dbd-69ff-d419-d083-37719bd6a530",
+      "name": "tdb-cinema-rail",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".tdb-cinema-rail",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "relative",
+            "width": "100%",
+            "height": "100%",
+            "overflow-x": "visible",
+            "overflow-y": "visible"
           }
         }
       }
@@ -3819,14 +3842,14 @@
                                   {
                                     "id": {
                                       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa678"
+                                      "element": "6d594dbd-69ff-d419-d083-37719bd6a52f"
                                     },
                                     "type": "Block",
                                     "styleNames": [
-                                      "tdb-cinema-photo"
+                                      "tdb-cinema-rail"
                                     ],
                                     "attributes": {
-                                      "data-tdb-cinema-photo": "0"
+                                      "data-tdb-cinema-rail": ""
                                     },
                                     "settings": {
                                       "tag": "div",
@@ -3839,33 +3862,14 @@
                                       {
                                         "id": {
                                           "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
-                                        },
-                                        "type": "Image",
-                                        "styleNames": [
-                                          "tdb-cinema-image"
-                                        ],
-                                        "attributes": {
-                                          "data-tdb-guide-image": "0",
-                                          "data-swiper-parallax-x": "30%"
-                                        },
-                                        "settings": {
-                                          "visibility": true,
-                                          "assetId": "6af5a067a3d3440e03054be7",
-                                          "altText": "3Shape TRIOS 6 scanner used for detailed digital treatment planning."
-                                        }
-                                      },
-                                      {
-                                        "id": {
-                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa677"
+                                          "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa678"
                                         },
                                         "type": "Block",
                                         "styleNames": [
-                                          "tdb-treatment-blur"
+                                          "tdb-cinema-photo"
                                         ],
                                         "attributes": {
-                                          "aria-hidden": "true"
+                                          "data-tdb-cinema-photo": "0"
                                         },
                                         "settings": {
                                           "tag": "div",
@@ -3873,60 +3877,60 @@
                                           "block": {
                                             "tag": "div"
                                           }
-                                        }
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "id": {
-                                      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "42ae0c31-831e-d948-3fd2-656214ee8263"
-                                    },
-                                    "type": "Block",
-                                    "styleNames": [
-                                      "tdb-cinema-photo"
-                                    ],
-                                    "attributes": {
-                                      "data-tdb-cinema-photo": "1"
-                                    },
-                                    "settings": {
-                                      "tag": "div",
-                                      "visibility": true,
-                                      "block": {
-                                        "tag": "div"
-                                      }
-                                    },
-                                    "children": [
-                                      {
-                                        "id": {
-                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "1f993975-34cc-19d9-15ec-8c000de58cb3"
                                         },
-                                        "type": "Image",
-                                        "styleNames": [
-                                          "tdb-cinema-image"
-                                        ],
-                                        "attributes": {
-                                          "data-tdb-guide-image": "1",
-                                          "data-swiper-parallax-x": "30%"
-                                        },
-                                        "settings": {
-                                          "visibility": true,
-                                          "assetId": "6afd92a79bb3ea4d71dbc1e2",
-                                          "altText": "Dr Keely Thorne reviewing a digital smile design at The Dental Barns."
-                                        }
+                                        "children": [
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
+                                            },
+                                            "type": "Image",
+                                            "styleNames": [
+                                              "tdb-cinema-image"
+                                            ],
+                                            "attributes": {
+                                              "data-tdb-guide-image": "0",
+                                              "data-swiper-parallax-x": "30%"
+                                            },
+                                            "settings": {
+                                              "visibility": true,
+                                              "assetId": "6af5a067a3d3440e03054be7",
+                                              "altText": "3Shape TRIOS 6 scanner used for detailed digital treatment planning."
+                                            }
+                                          },
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa677"
+                                            },
+                                            "type": "Block",
+                                            "styleNames": [
+                                              "tdb-treatment-blur"
+                                            ],
+                                            "attributes": {
+                                              "aria-hidden": "true"
+                                            },
+                                            "settings": {
+                                              "tag": "div",
+                                              "visibility": true,
+                                              "block": {
+                                                "tag": "div"
+                                              }
+                                            }
+                                          }
+                                        ]
                                       },
                                       {
                                         "id": {
                                           "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "42ae0c31-831e-d948-3fd2-656214ee8262"
+                                          "element": "42ae0c31-831e-d948-3fd2-656214ee8263"
                                         },
                                         "type": "Block",
                                         "styleNames": [
-                                          "tdb-treatment-blur"
+                                          "tdb-cinema-photo"
                                         ],
                                         "attributes": {
-                                          "aria-hidden": "true"
+                                          "data-tdb-cinema-photo": "1"
                                         },
                                         "settings": {
                                           "tag": "div",
@@ -3934,60 +3938,60 @@
                                           "block": {
                                             "tag": "div"
                                           }
-                                        }
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "id": {
-                                      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e7a"
-                                    },
-                                    "type": "Block",
-                                    "styleNames": [
-                                      "tdb-cinema-photo"
-                                    ],
-                                    "attributes": {
-                                      "data-tdb-cinema-photo": "2"
-                                    },
-                                    "settings": {
-                                      "tag": "div",
-                                      "visibility": true,
-                                      "block": {
-                                        "tag": "div"
-                                      }
-                                    },
-                                    "children": [
-                                      {
-                                        "id": {
-                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
                                         },
-                                        "type": "Image",
-                                        "styleNames": [
-                                          "tdb-cinema-image"
-                                        ],
-                                        "attributes": {
-                                          "data-tdb-guide-image": "2",
-                                          "data-swiper-parallax-x": "30%"
-                                        },
-                                        "settings": {
-                                          "visibility": true,
-                                          "assetId": "696a3cd828033c589019ed7f",
-                                          "altText": "Personal dental care kits at The Dental Barns."
-                                        }
+                                        "children": [
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "1f993975-34cc-19d9-15ec-8c000de58cb3"
+                                            },
+                                            "type": "Image",
+                                            "styleNames": [
+                                              "tdb-cinema-image"
+                                            ],
+                                            "attributes": {
+                                              "data-tdb-guide-image": "1",
+                                              "data-swiper-parallax-x": "30%"
+                                            },
+                                            "settings": {
+                                              "visibility": true,
+                                              "assetId": "6afd92a79bb3ea4d71dbc1e2",
+                                              "altText": "Dr Keely Thorne reviewing a digital smile design at The Dental Barns."
+                                            }
+                                          },
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "42ae0c31-831e-d948-3fd2-656214ee8262"
+                                            },
+                                            "type": "Block",
+                                            "styleNames": [
+                                              "tdb-treatment-blur"
+                                            ],
+                                            "attributes": {
+                                              "aria-hidden": "true"
+                                            },
+                                            "settings": {
+                                              "tag": "div",
+                                              "visibility": true,
+                                              "block": {
+                                                "tag": "div"
+                                              }
+                                            }
+                                          }
+                                        ]
                                       },
                                       {
                                         "id": {
                                           "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e79"
+                                          "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e7a"
                                         },
                                         "type": "Block",
                                         "styleNames": [
-                                          "tdb-treatment-blur"
+                                          "tdb-cinema-photo"
                                         ],
                                         "attributes": {
-                                          "aria-hidden": "true"
+                                          "data-tdb-cinema-photo": "2"
                                         },
                                         "settings": {
                                           "tag": "div",
@@ -3995,60 +3999,60 @@
                                           "block": {
                                             "tag": "div"
                                           }
-                                        }
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "id": {
-                                      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0e"
-                                    },
-                                    "type": "Block",
-                                    "styleNames": [
-                                      "tdb-cinema-photo"
-                                    ],
-                                    "attributes": {
-                                      "data-tdb-cinema-photo": "3"
-                                    },
-                                    "settings": {
-                                      "tag": "div",
-                                      "visibility": true,
-                                      "block": {
-                                        "tag": "div"
-                                      }
-                                    },
-                                    "children": [
-                                      {
-                                        "id": {
-                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
                                         },
-                                        "type": "Image",
-                                        "styleNames": [
-                                          "tdb-cinema-image"
-                                        ],
-                                        "attributes": {
-                                          "data-tdb-guide-image": "3",
-                                          "data-swiper-parallax-x": "30%"
-                                        },
-                                        "settings": {
-                                          "visibility": true,
-                                          "assetId": "6afd92a713a8ba591963e9af",
-                                          "altText": "Dr Keely Thorne at The Dental Barns."
-                                        }
+                                        "children": [
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
+                                            },
+                                            "type": "Image",
+                                            "styleNames": [
+                                              "tdb-cinema-image"
+                                            ],
+                                            "attributes": {
+                                              "data-tdb-guide-image": "2",
+                                              "data-swiper-parallax-x": "30%"
+                                            },
+                                            "settings": {
+                                              "visibility": true,
+                                              "assetId": "696a3cd828033c589019ed7f",
+                                              "altText": "Personal dental care kits at The Dental Barns."
+                                            }
+                                          },
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "1f8110c8-0e01-d3e7-bd41-0d3352c92e79"
+                                            },
+                                            "type": "Block",
+                                            "styleNames": [
+                                              "tdb-treatment-blur"
+                                            ],
+                                            "attributes": {
+                                              "aria-hidden": "true"
+                                            },
+                                            "settings": {
+                                              "tag": "div",
+                                              "visibility": true,
+                                              "block": {
+                                                "tag": "div"
+                                              }
+                                            }
+                                          }
+                                        ]
                                       },
                                       {
                                         "id": {
                                           "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0d"
+                                          "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0e"
                                         },
                                         "type": "Block",
                                         "styleNames": [
-                                          "tdb-treatment-blur"
+                                          "tdb-cinema-photo"
                                         ],
                                         "attributes": {
-                                          "aria-hidden": "true"
+                                          "data-tdb-cinema-photo": "3"
                                         },
                                         "settings": {
                                           "tag": "div",
@@ -4056,60 +4060,60 @@
                                           "block": {
                                             "tag": "div"
                                           }
-                                        }
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "id": {
-                                      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                      "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aef"
-                                    },
-                                    "type": "Block",
-                                    "styleNames": [
-                                      "tdb-cinema-photo"
-                                    ],
-                                    "attributes": {
-                                      "data-tdb-cinema-photo": "4"
-                                    },
-                                    "settings": {
-                                      "tag": "div",
-                                      "visibility": true,
-                                      "block": {
-                                        "tag": "div"
-                                      }
-                                    },
-                                    "children": [
-                                      {
-                                        "id": {
-                                          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "1504bae7-863d-d8cf-cf93-a7661cb27642"
                                         },
-                                        "type": "Image",
-                                        "styleNames": [
-                                          "tdb-cinema-image"
-                                        ],
-                                        "attributes": {
-                                          "data-tdb-guide-image": "4",
-                                          "data-swiper-parallax-x": "30%"
-                                        },
-                                        "settings": {
-                                          "visibility": true,
-                                          "assetId": "6afd92a728122f76dc772722",
-                                          "altText": "The private patient lounge at The Dental Barns."
-                                        }
+                                        "children": [
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
+                                            },
+                                            "type": "Image",
+                                            "styleNames": [
+                                              "tdb-cinema-image"
+                                            ],
+                                            "attributes": {
+                                              "data-tdb-guide-image": "3",
+                                              "data-swiper-parallax-x": "30%"
+                                            },
+                                            "settings": {
+                                              "visibility": true,
+                                              "assetId": "6afd92a713a8ba591963e9af",
+                                              "altText": "Dr Keely Thorne at The Dental Barns."
+                                            }
+                                          },
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "cb31e1ed-f4db-de7b-8e51-696584a19e0d"
+                                            },
+                                            "type": "Block",
+                                            "styleNames": [
+                                              "tdb-treatment-blur"
+                                            ],
+                                            "attributes": {
+                                              "aria-hidden": "true"
+                                            },
+                                            "settings": {
+                                              "tag": "div",
+                                              "visibility": true,
+                                              "block": {
+                                                "tag": "div"
+                                              }
+                                            }
+                                          }
+                                        ]
                                       },
                                       {
                                         "id": {
                                           "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
-                                          "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aee"
+                                          "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aef"
                                         },
                                         "type": "Block",
                                         "styleNames": [
-                                          "tdb-treatment-blur"
+                                          "tdb-cinema-photo"
                                         ],
                                         "attributes": {
-                                          "aria-hidden": "true"
+                                          "data-tdb-cinema-photo": "4"
                                         },
                                         "settings": {
                                           "tag": "div",
@@ -4117,7 +4121,48 @@
                                           "block": {
                                             "tag": "div"
                                           }
-                                        }
+                                        },
+                                        "children": [
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "1504bae7-863d-d8cf-cf93-a7661cb27642"
+                                            },
+                                            "type": "Image",
+                                            "styleNames": [
+                                              "tdb-cinema-image"
+                                            ],
+                                            "attributes": {
+                                              "data-tdb-guide-image": "4",
+                                              "data-swiper-parallax-x": "30%"
+                                            },
+                                            "settings": {
+                                              "visibility": true,
+                                              "assetId": "6afd92a728122f76dc772722",
+                                              "altText": "The private patient lounge at The Dental Barns."
+                                            }
+                                          },
+                                          {
+                                            "id": {
+                                              "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+                                              "element": "cf952e02-7b61-cf9e-69c4-6a3c877a6aee"
+                                            },
+                                            "type": "Block",
+                                            "styleNames": [
+                                              "tdb-treatment-blur"
+                                            ],
+                                            "attributes": {
+                                              "aria-hidden": "true"
+                                            },
+                                            "settings": {
+                                              "tag": "div",
+                                              "visibility": true,
+                                              "block": {
+                                                "tag": "div"
+                                              }
+                                            }
+                                          }
+                                        ]
                                       }
                                     ]
                                   }
@@ -4526,7 +4571,7 @@
                                             },
                                             "type": "Paragraph",
                                             "styleNames": [
-                                              "text-style-tagline-restored"
+                                              "tdb-cinema-eyebrow"
                                             ],
                                             "attributes": {
                                               "data-tdb-cinema-eyebrow": ""
@@ -4762,7 +4807,7 @@
                                             },
                                             "type": "Paragraph",
                                             "styleNames": [
-                                              "text-style-tagline-restored"
+                                              "tdb-cinema-eyebrow"
                                             ],
                                             "attributes": {
                                               "data-tdb-cinema-eyebrow": ""
@@ -4998,7 +5043,7 @@
                                             },
                                             "type": "Paragraph",
                                             "styleNames": [
-                                              "text-style-tagline-restored"
+                                              "tdb-cinema-eyebrow"
                                             ],
                                             "attributes": {
                                               "data-tdb-cinema-eyebrow": ""
@@ -5234,7 +5279,7 @@
                                             },
                                             "type": "Paragraph",
                                             "styleNames": [
-                                              "text-style-tagline-restored"
+                                              "tdb-cinema-eyebrow"
                                             ],
                                             "attributes": {
                                               "data-tdb-cinema-eyebrow": ""
@@ -5470,7 +5515,7 @@
                                             },
                                             "type": "Paragraph",
                                             "styleNames": [
-                                              "text-style-tagline-restored"
+                                              "tdb-cinema-eyebrow"
                                             ],
                                             "attributes": {
                                               "data-tdb-cinema-eyebrow": ""
@@ -6021,5 +6066,9 @@
   "outroSpacer": {
     "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
     "element": "bc276f70-ebc6-44d3-a4cd-ca3e53e5f508"
+  },
+  "imageRail": {
+    "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+    "element": "6d594dbd-69ff-d419-d083-37719bd6a52f"
   }
 }

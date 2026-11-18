@@ -30,7 +30,7 @@ test('Cinema presence selects only the Cinema controller', async () => {
   w.TDBTreatmentGuideLoader.destroy();
   w.close();
 });
-function setup() {
+function setup({ pendingImages = [] } = {}) {
   const dom = new JSDOM(
     `<section data-tdb-guide data-tdb-guide-cinema><span data-tdb-guide-treatment>Veneers</span><div class="tdb-cinema-track"><div class="tdb-cinema-stage"><div class="tdb-cinema-tabs"><nav>${Array.from({ length: 5 }, (_, i) => `<a data-tdb-guide-choice="${i}" href="#pane-${i}" ${i ? '' : 'class="w--current"'}>${i + 1}</a>`).join('')}</nav>${Array.from({ length: 5 }, (_, i) => `<div data-tdb-guide-panel="${i}" ${i ? '' : 'class="w--tab-active"'}><img class="tdb-cinema-image" src="https://example.org/fallback-${i}.webp" alt="Fallback"><h3 data-tdb-guide-title>Chapter ${i + 1}</h3><div data-tdb-guide-body>${i === 0 ? '<img src="https://example.org/camera-with-lens.webp" alt="CMS photo">' : ''}</div></div>`).join('')}</div><a data-tdb-cinema-next href="#end">Scroll to continue</a><a data-tdb-cinema-skip href="#end">Skip</a></div></div></section><section id="after">Following content</section>`,
     {
@@ -55,7 +55,22 @@ function setup() {
   const parallax = w.document.createElement('div');
   parallax.setAttribute('data-tdb-cinema-parallax', '');
   media.append(parallax);
-  const photoMoves = [];
+  const photoMoves = [],
+    railMoves = [],
+    pending = new Set(pendingImages),
+    imageResolvers = new Map();
+  const rail = w.document.createElement('div');
+  rail.setAttribute('data-tdb-cinema-rail', '');
+  parallax.append(rail);
+  rail.animate = (keyframes, timing) => {
+    const record = { keyframes, timing, cancelled: false };
+    railMoves.push(record);
+    return {
+      cancel() {
+        record.cancelled = true;
+      },
+    };
+  };
   root.querySelectorAll('.tdb-cinema-image').forEach((image, index) => {
     const photo = w.document.createElement('div');
     photo.setAttribute('data-tdb-cinema-photo', String(index));
@@ -63,7 +78,19 @@ function setup() {
     const blur = w.document.createElement('div');
     blur.className = 'tdb-treatment-blur';
     photo.append(image, blur);
-    parallax.append(photo);
+    rail.append(photo);
+    Object.defineProperty(image, 'complete', { get: () => !pending.has(index) });
+    Object.defineProperty(image, 'naturalWidth', { get: () => (pending.has(index) ? 0 : 800) });
+    if (pending.has(index))
+      image.decode = () =>
+        pending.has(index)
+          ? new Promise((resolve) =>
+              imageResolvers.set(index, () => {
+                pending.delete(index);
+                resolve();
+              }),
+            )
+          : Promise.resolve();
     for (const [kind, node] of [
       ['crop', photo],
       ['image', image],
@@ -161,6 +188,11 @@ function setup() {
     progress,
     progressMoves,
     photoMoves,
+    rail,
+    railMoves,
+    resolveImage(index) {
+      imageResolvers.get(index)?.();
+    },
     get y() {
       return y;
     },
@@ -224,33 +256,68 @@ test('the progress line creeps during a reading beat before the next chapter sna
   t.close();
 });
 
-test('photos use the existing carousel parallax ratio, shared clock and adjacent blur state', () => {
+test('one image strip retains complete coverage and shares the Services parallax and blur clocks', () => {
   const t = setup();
   t.root.querySelector('[data-tdb-guide-choice="1"]').click();
   t.flush();
-  const outgoingCrop = t.photoMoves.find((m) => m.index === 0 && m.kind === 'crop');
-  const outgoingImage = t.photoMoves.find((m) => m.index === 0 && m.kind === 'image');
-  const incomingImage = t.photoMoves.find((m) => m.index === 1 && m.kind === 'image');
-  assert.equal(outgoingCrop.keyframes.at(-1).transform, 'translateX(-100%)');
-  assert.equal(outgoingImage.keyframes.at(-1).transform, 'translateX(30%)');
-  assert.equal(incomingImage.keyframes[0].transform, 'translateX(-30%)');
-  assert.equal(incomingImage.keyframes[0].visibility, 'visible');
-  assert.equal(outgoingImage.keyframes.at(-1).visibility, 'visible');
-  assert.equal(outgoingCrop.timing, outgoingImage.timing);
-  assert.equal(incomingImage.timing.duration, 500);
-  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="0"] .is-current'), null);
-  assert.ok(t.root.querySelector('[data-tdb-cinema-photo="1"] .is-current'));
-  t.root.querySelector('[data-tdb-guide-choice="0"]').click();
+  const railMove = t.railMoves.at(-1);
+  const imageMove = t.photoMoves.find((m) => m.index === 0 && m.kind === 'image');
+  assert.equal(railMove.keyframes.at(-1).transform, 'translateX(-100%)');
+  assert.equal(imageMove.keyframes.at(-1).transform, 'translateX(30%)');
+  assert.equal(railMove.timing, imageMove.timing);
+  assert.equal(
+    t.root.querySelector('.tdb-cinema-media').style.getPropertyValue('--tdb-parallax-duration'),
+    '500ms',
+  );
+  for (let i = 0; i < 5; i++) {
+    const photo = t.root.querySelector('[data-tdb-cinema-photo="' + i + '"]');
+    assert.equal(photo.style.transform, 'translateX(' + i * 100 + '%)');
+    assert.equal(photo.style.visibility, 'visible');
+    assert.equal(photo.querySelector('img').style.visibility, 'visible');
+  }
+  t.root.querySelector('[data-tdb-guide-choice="2"]').click();
   t.flush();
-  assert.equal(outgoingCrop.cancelled, true);
-  assert.equal(outgoingImage.cancelled, true);
-  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="0"] img').style.visibility, 'visible');
-  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="1"] img').style.visibility, 'hidden');
+  assert.equal(railMove.cancelled, true);
+  assert.equal(t.rail.style.transform, 'translateX(-200%)');
+  assert.ok(t.root.querySelector('[data-tdb-cinema-photo="2"] .is-current'));
   t.api.destroy();
+  assert.equal(t.rail.getAttribute('style'), null);
   assert.equal(t.root.querySelector('[data-tdb-cinema-photo]').getAttribute('style'), null);
   assert.equal(t.root.querySelector('.tdb-treatment-blur.is-current'), null);
+  assert.equal(
+    t.root.querySelector('.tdb-cinema-media').style.getPropertyValue('--tdb-parallax-duration'),
+    '',
+  );
   t.w.close();
 });
+
+test('a fast jump retains the current photograph until every crossed image can paint', async () => {
+  const t = setup({ pendingImages: [1] });
+  t.root.querySelector('[data-tdb-guide-choice="2"]').click();
+  t.flush();
+  assert.equal(t.root.dataset.tdbCinemaChapter, '3');
+  assert.equal(t.root.dataset.tdbCinemaPhoto, '1');
+  assert.equal(t.rail.style.transform, 'translateX(0%)');
+  t.resolveImage(1);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(t.root.dataset.tdbCinemaPhoto, '3');
+  assert.equal(t.rail.style.transform, 'translateX(-200%)');
+  t.close();
+});
+
+test('site chrome leaves at image entry and remains away until the section exits', () => {
+  const t = setup();
+  t.scroll(100);
+  assert.equal(t.chrome, 0);
+  t.scroll(300);
+  assert.equal(t.chrome, 1, 'the image is entering, before the pin');
+  t.scroll(4500);
+  assert.equal(t.chrome, 1, 'keep chrome away while the stage exits');
+  t.scroll(5001);
+  assert.equal(t.chrome, 0);
+  t.close();
+});
+
 test('native vertical position reaches every chapter, holds the fifth, and supports reversal', () => {
   const t = setup();
   for (let i = 0; i < 5; i++) {
