@@ -114,12 +114,6 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
       if (geometry && next !== geometry) travel(active, false);
       geometry = next;
     }
-    frames.forEach((frame, index) => {
-      frame.classList.add('is-cinema-ready');
-      frame.style.visibility = 'visible';
-      frameImages[index].style.visibility = 'visible';
-      if (blurs[index]) blurs[index].style.visibility = 'visible';
-    });
     measure();
     travel(initial, false);
     images.forEach((image, index) => load(index));

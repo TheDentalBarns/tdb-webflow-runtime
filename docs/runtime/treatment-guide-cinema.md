@@ -1,4 +1,4 @@
-# Treatment guide Cinema — staging v2.1.31
+# Treatment guide Cinema — staging v2.1.32
 
 The treatment template keeps its five CMS titles, summaries and full chapter drawers. Phones retain a 40lvh image; desktop uses up to 60lvh, retaining at least 25rem for the content and controls on shorter screens. The lower area blends from black to the existing #222 charcoal. The shared native ticker displays only the current number at the top right. The five bottom numbers remain padded across the width. The underline fills continuously with vertical scroll, and each chapter changes at the next fifth of the track. Number clicks animate the line to the selected chapter using the shared motion clock.
 
@@ -50,3 +50,15 @@ There is no rich-text image lookup, treatment-name image mapping or JavaScript s
 The shared exit wrapper was recreated with the same native class because Webflow rejected attribute writes to its original empty attribute map. Both original child layers were moved intact before the empty wrapper was removed. Its replacement ID is recorded in the Designer contract; its dimensions and styles are unchanged.
 
 `config/treatment-guide-cinema-cms-images.json` records fields, props and fallback layers. `config/treatment-guide-cinema-cms-rollback.json` restores static image bindings on the seven replacement nodes and removes their underlays without deleting newly added CMS data. Older rollback manifests use the replacement node IDs. Exact pre-change CMS/native/site-code backups remain private in `before-native-cms-images.json`. For a full 2.1.29 rollback, apply both CMS-image and exit/order rollback instructions before restoring all four immutable install references and publishing staging only.
+
+## Designer resting visibility — 2.1.32
+
+The previous native classes hid every photo and chapter panel. External selection CSS revealed the initial chapter on the published site, and JavaScript applied the photo-flow class, leaving the Designer canvas blank. That was an incomplete ownership handover.
+
+The photo class now owns visible flex geometry directly, and the rail's native desktop/mobile transform centres the first image between its previews. The first native blur layer carries the existing `is-current` class. The obsolete `is-cinema-ready` combo is removed. The photo controller no longer writes visibility or installs geometry classes; it reads native frame offsets and animates them.
+
+Webflow's native tab display rules now select the resting text panel. The copy grid lives on the native inner wrapper, retaining the same desktop/mobile gaps. Only an enhanced Cinema exposes inactive panels for outgoing text animation. Number opacity and no-module image/progress selection remain interaction states in the shared stylesheet; the native tab background is transparent, and its focus outline is native. The no-module image translations use the existing 2rem desktop / 0 mobile gutter; update that selection helper if this authored gutter changes.
+
+CMS image fields, fallback assets, fonts, dimensions, CTA position and motion timing are unchanged. This pass was made through headless Webflow tools while the user retained their desktop. Native style readback and HTTP/CSS checks do not constitute a visual Designer or physical-device check.
+
+`config/treatment-guide-cinema-designer-rollback.json` restores the native states and previous immutable runtime. The exact component/style/site-code snapshot is retained privately in `cinema-designer-fix-20261118/before-native.json`. Publish staging only.

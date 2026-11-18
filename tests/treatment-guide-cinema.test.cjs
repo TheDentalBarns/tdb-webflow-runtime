@@ -297,7 +297,7 @@ test('image entrance parallax stops at the pin and the underline uses shared tra
   t.flush();
   assert.equal(t.progressMoves.at(-2).cancelled, true);
   assert.equal(t.progress.style.transform, 'scaleX(0.200625)');
-  assert.equal(t.root.querySelectorAll('[data-tdb-cinema-photo]')[1].style.visibility, 'visible');
+  assert.equal(t.root.querySelectorAll('[data-tdb-cinema-photo]')[1].style.visibility, '');
   t.api.destroy();
   assert.equal(t.parallax.getAttribute('style'), null);
   assert.equal(t.progress.getAttribute('style'), null);
@@ -340,9 +340,9 @@ test('one image strip retains complete coverage and shares the Services parallax
   for (let i = 0; i < 5; i++) {
     const photo = t.root.querySelector('[data-tdb-cinema-photo="' + i + '"]');
     assert.equal(photo.style.transform, '', 'native flow owns crop position');
-    assert.equal(photo.classList.contains('is-cinema-ready'), true);
-    assert.equal(photo.style.visibility, 'visible');
-    assert.equal(photo.querySelector('img').style.visibility, 'visible');
+    assert.equal(photo.classList.contains('is-cinema-ready'), false, 'native geometry needs no runtime class');
+    assert.equal(photo.style.visibility, '', 'Designer owns photo visibility');
+    assert.equal(photo.querySelector('img').style.visibility, '', 'Designer owns image visibility');
   }
   t.root.querySelector('[data-tdb-guide-choice="2"]').click();
   t.flush();

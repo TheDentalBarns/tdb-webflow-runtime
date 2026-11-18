@@ -481,12 +481,6 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
       if (geometry && next !== geometry) travel(active, false);
       geometry = next;
     }
-    frames.forEach((frame, index) => {
-      frame.classList.add('is-cinema-ready');
-      frame.style.visibility = 'visible';
-      frameImages[index].style.visibility = 'visible';
-      if (blurs[index]) blurs[index].style.visibility = 'visible';
-    });
     measure();
     travel(initial, false);
     images.forEach((image, index) => load(index));
@@ -524,7 +518,7 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
 })();
 
 /* Designer owns the 100lvh stage, photos, typography and controls.
- * This module owns chapter selection, CMS image population and motion only. */
+ * This module owns chapter selection and motion only. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideCinema) return;

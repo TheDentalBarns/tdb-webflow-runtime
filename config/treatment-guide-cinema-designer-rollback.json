@@ -1,0 +1,234 @@
+{
+  "runtime": "f687cdedb487af2add6a4d4cc4eb402e5669bed0",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "678507292f3f5412bfe2b4fa",
+  "scopeComponentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+  "privateBackup": "cinema-designer-fix-20261118/before-native.json",
+  "instructions": "Restore createStyles, styleActions and elementActions in that order, restore all four runtime references to the recorded SHA, then publish staging only.",
+  "createStyles": [
+    {
+      "label": "Restore legacy photo geometry combo",
+      "create_style": {
+        "name": "is-cinema-ready",
+        "parent_style_names": [
+          "tdb-cinema-photo"
+        ],
+        "properties": [
+          {
+            "property_name": "position",
+            "property_value": "relative"
+          },
+          {
+            "property_name": "left",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "top",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "right",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "bottom",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "flex-grow",
+            "property_value": "0"
+          },
+          {
+            "property_name": "flex-shrink",
+            "property_value": "0"
+          },
+          {
+            "property_name": "flex-basis",
+            "property_value": "100%"
+          }
+        ]
+      }
+    }
+  ],
+  "styleActions": [
+    {
+      "label": "Restore tdb-cinema-panel main",
+      "update_style": {
+        "style_name": "tdb-cinema-panel",
+        "properties": [
+          {
+            "property_name": "display",
+            "property_value": "grid"
+          },
+          {
+            "property_name": "visibility",
+            "property_value": "hidden"
+          },
+          {
+            "property_name": "pointer-events",
+            "property_value": "none"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-choice main",
+      "update_style": {
+        "style_name": "tdb-cinema-choice",
+        "properties": [
+          {
+            "property_name": "background-color",
+            "property_value": "transparent"
+          }
+        ],
+        "remove_properties": [
+          "opacity"
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-copy main",
+      "update_style": {
+        "style_name": "tdb-cinema-copy",
+        "properties": [
+          {
+            "property_name": "grid-row-gap",
+            "property_value": "1.25rem"
+          },
+          {
+            "property_name": "display",
+            "property_value": "contents"
+          }
+        ],
+        "remove_properties": [
+          "align-content",
+          "grid-template-columns",
+          "grid-template-rows"
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-copy medium",
+      "update_style": {
+        "style_name": "tdb-cinema-copy",
+        "breakpoint_id": "medium",
+        "properties": [],
+        "remove_properties": [
+          "grid-row-gap"
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-photo main",
+      "update_style": {
+        "style_name": "tdb-cinema-photo",
+        "properties": [
+          {
+            "property_name": "position",
+            "property_value": "absolute"
+          },
+          {
+            "property_name": "top",
+            "property_value": "0"
+          },
+          {
+            "property_name": "right",
+            "property_value": "0"
+          },
+          {
+            "property_name": "bottom",
+            "property_value": "0"
+          },
+          {
+            "property_name": "left",
+            "property_value": "0"
+          },
+          {
+            "property_name": "visibility",
+            "property_value": "hidden"
+          }
+        ],
+        "remove_properties": [
+          "flex-grow",
+          "flex-shrink",
+          "flex-basis"
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-rail main",
+      "update_style": {
+        "style_name": "tdb-cinema-rail",
+        "properties": [],
+        "remove_properties": [
+          "transform"
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-rail medium",
+      "update_style": {
+        "style_name": "tdb-cinema-rail",
+        "breakpoint_id": "medium",
+        "properties": [],
+        "remove_properties": [
+          "transform"
+        ]
+      }
+    },
+    {
+      "label": "Remove added native focus state",
+      "update_style": {
+        "style_name": "tdb-cinema-choice",
+        "pseudo": "focus-visible",
+        "remove_properties": [
+          "outline",
+          "outline-offset"
+        ]
+      }
+    }
+  ],
+  "elementActions": [
+    {
+      "label": "Restore native element classes",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "872bef9a-8cb1-a687-a139-320c8833f110"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "tdb-cinema-photo",
+          "is-cinema-ready"
+        ]
+      }
+    },
+    {
+      "label": "Restore native element classes",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "b6f1535e-34a1-6b62-4f77-fb0ce82aa677"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "tdb-treatment-blur"
+        ]
+      }
+    },
+    {
+      "label": "Restore native element classes",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "82d0c0fc-5379-8c95-be66-3d4e44fb9060"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "style_names": [
+          "tdb-cinema-photo",
+          "is-cinema-ready"
+        ]
+      }
+    }
+  ]
+}

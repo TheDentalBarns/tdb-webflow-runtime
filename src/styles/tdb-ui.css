@@ -425,25 +425,30 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 [data-tdb-guide] .treatment-guide_learn-more::-webkit-details-marker{display:none}
 [data-tdb-guide]:has(details[open]) .treatment-guide_arrows{visibility:hidden}
 
-/* Cinema selection states; all dimensions, placement and typography are native. */
-[data-tdb-guide-cinema] .tdb-cinema-panel.w--tab-active{visibility:visible;pointer-events:auto}
-[data-tdb-guide-cinema] .tdb-cinema-choice{opacity:.45}
-[data-tdb-guide-cinema] .tdb-cinema-choice.w--current{opacity:1;background-color:transparent;border-bottom-color:currentColor}
-[data-tdb-guide-cinema] .tdb-cinema-choice:focus-visible{outline:1px solid currentColor;outline-offset:-3px}
+/* Native Webflow tabs own the resting/Designer chapter. Enhancement keeps
+ * outgoing text paintable while the shared motion controller transitions it. */
+[data-tdb-cinema-ready] .tdb-cinema-panel{display:block}
+[data-tdb-cinema-ready] .tdb-cinema-panel:not(.w--tab-active){visibility:hidden;pointer-events:none}
+[data-tdb-guide-cinema] .tdb-cinema-choice.w--current{opacity:1}
 [data-tdb-guide-cinema] .tdb-cinema-image{backface-visibility:hidden}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"]{visibility:visible}
+/* No-module tab selection offsets use the authored desktop/mobile gutter.
+ * Native classes also author the initial photo position without this sheet. */
+[data-tdb-guide-cinema]{--tdb-cinema-gap:2rem;--tdb-cinema-rest-blur:blur(20px)}
+@media screen and (max-width:991px){[data-tdb-guide-cinema]{--tdb-cinema-gap:0px}}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]) .tdb-treatment-blur{backdrop-filter:var(--tdb-cinema-rest-blur);-webkit-backdrop-filter:var(--tdb-cinema-rest-blur)}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="0"].w--tab-active) .tdb-cinema-rail{transform:translateX(calc(-100% - var(--tdb-cinema-gap)))}
 [data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.2)}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="1"].w--tab-active) [data-tdb-cinema-photo="1"]{visibility:visible}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="1"].w--tab-active) .tdb-cinema-rail{transform:translateX(calc(-200% - 2 * var(--tdb-cinema-gap)))}
 [data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="1"].w--tab-active) [data-tdb-cinema-photo="1"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="1"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.4)}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="2"].w--tab-active) [data-tdb-cinema-photo="2"]{visibility:visible}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="2"].w--tab-active) .tdb-cinema-rail{transform:translateX(calc(-300% - 3 * var(--tdb-cinema-gap)))}
 [data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="2"].w--tab-active) [data-tdb-cinema-photo="2"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="2"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.6)}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="3"].w--tab-active) [data-tdb-cinema-photo="3"]{visibility:visible}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="3"].w--tab-active) .tdb-cinema-rail{transform:translateX(calc(-400% - 4 * var(--tdb-cinema-gap)))}
 [data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="3"].w--tab-active) [data-tdb-cinema-photo="3"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="3"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.8)}
-[data-tdb-guide-cinema]:has([data-tdb-guide-panel="4"].w--tab-active) [data-tdb-cinema-photo="4"]{visibility:visible}
+[data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="4"].w--tab-active) .tdb-cinema-rail{transform:translateX(calc(-500% - 5 * var(--tdb-cinema-gap)))}
 [data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="4"].w--tab-active) [data-tdb-cinema-photo="4"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="4"].w--tab-active) .tdb-cinema-progress{transform:scaleX(1)}
 

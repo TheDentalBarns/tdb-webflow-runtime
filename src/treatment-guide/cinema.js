@@ -1,5 +1,5 @@
 /* Designer owns the 100lvh stage, photos, typography and controls.
- * This module owns chapter selection, CMS image population and motion only. */
+ * This module owns chapter selection and motion only. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideCinema) return;
