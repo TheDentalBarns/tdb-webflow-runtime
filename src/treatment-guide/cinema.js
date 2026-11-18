@@ -78,7 +78,8 @@
       runway = 1,
       stageHeight = 1,
       mediaHeight = 0,
-      outroHeight = 0;
+      outroHeight = 0,
+      measuredWidth = 0;
     let animations = [],
       releaseChrome = null,
       progressAnimation = null,
@@ -255,6 +256,10 @@
         '--tdb-parallax-duration',
         motion.duration(stage.clientWidth) + 'ms',
       );
+      // Captured animation matrices are pixels. A resized strip must not
+      // continue travelling from coordinates outside its new viewport.
+      if (measuredWidth && measuredWidth !== stage.clientWidth) travelPhotos(photoIndex, false);
+      measuredWidth = stage.clientWidth;
       runway = Math.max(1, rect.height - stageHeight);
       // Five equal reading beats, including a full hold for the last chapter.
       step = runway / 5;

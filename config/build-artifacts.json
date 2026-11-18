@@ -693,10 +693,10 @@
         "src/treatment-guide/card.js",
         "src/treatment-guide/cinema.js"
       ],
-      "sha256": "a274e9e01dd8157a714a25a8f87098aba97528bff334ec9880e6aed093ddd0be",
-      "raw": 16219,
-      "gzip": 5680,
-      "brotli": 5090
+      "sha256": "a8369362449aa909365d9fca52b23465733a33e1a4567a1e2cf3b527b72b9c91",
+      "raw": 16273,
+      "gzip": 5701,
+      "brotli": 5114
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [

@@ -52,7 +52,8 @@ function setup({ pendingImages = [] } = {}) {
     sequence = 0,
     chrome = 0,
     destroyed = 0,
-    height = 800;
+    height = 800,
+    width = 390;
   const updates = [];
   const media = w.document.createElement('div');
   media.className = 'tdb-cinema-media';
@@ -130,7 +131,7 @@ function setup({ pendingImages = [] } = {}) {
   Object.defineProperty(w, 'scrollY', { get: () => y });
   track.getBoundingClientRect = () => ({ top: 1000 - y, height: 4000 });
   stage.getBoundingClientRect = () => ({ top: 0, height });
-  Object.defineProperty(stage, 'clientWidth', { value: 390 });
+  Object.defineProperty(stage, 'clientWidth', { get: () => width });
   w.requestAnimationFrame = (fn) => (frames.set(++sequence, fn), sequence);
   w.cancelAnimationFrame = (id) => frames.delete(id);
   w.ResizeObserver = class {
@@ -208,6 +209,11 @@ function setup({ pendingImages = [] } = {}) {
     },
     resize(h) {
       height = h;
+      w.dispatchEvent(new w.Event('resize'));
+      flush();
+    },
+    resizeWidth(value) {
+      width = value;
       w.dispatchEvent(new w.Event('resize'));
       flush();
     },
@@ -306,6 +312,22 @@ test('a fast jump retains the current photograph until every crossed image can p
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(t.root.dataset.tdbCinemaImageIndex, '3');
   assert.equal(t.rail.style.transform, 'translateX(-200%)');
+  t.close();
+});
+
+test('resizing during travel cancels stale pixel matrices and restores the current crop', () => {
+  const t = setup();
+  t.root.querySelector('[data-tdb-guide-choice="4"]').click();
+  t.flush();
+  const moving = t.railMoves.at(-1);
+  t.resizeWidth(1440);
+  assert.equal(moving.cancelled, true);
+  assert.equal(t.rail.style.transform, 'translateX(-400%)');
+  assert.equal(t.root.dataset.tdbCinemaImageIndex, '5');
+  assert.equal(
+    t.root.querySelector('[data-tdb-cinema-photo="4"]').style.transform,
+    'translateX(400%)',
+  );
   t.close();
 });
 
