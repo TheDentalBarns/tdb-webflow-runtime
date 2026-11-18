@@ -365,8 +365,8 @@ window.TDBTreatmentGuideCard ||= (() => {
   return Object.freeze({ mount });
 })();
 
-/* Native frames own widths, gaps and crops. This controller only populates
- * their images and animates the measured strip with the shared carousel clock. */
+/* Designer owns CMS image bindings, fallback photos, widths, gaps and crops.
+ * This controller decodes and animates the native strip with the shared carousel clock. */
 window.TDBTreatmentGuideCinemaPhotos ||= (() => {
   const clamp = (value) => Math.max(-1, Math.min(1, value));
   function mount(root, initial) {
@@ -391,7 +391,6 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
         node.getAttribute(name),
       ]),
     ]);
-    const fallbackSources = images.map((image) => image.getAttribute('src'));
     const clockBefore = media.style.getPropertyValue('--tdb-parallax-duration');
     const clockPriority = media.style.getPropertyPriority('--tdb-parallax-duration');
     const previews = frames
@@ -417,40 +416,8 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
         image.addEventListener('error', reject, { once: true, signal: events.signal });
       });
     };
-    function mirror(index) {
-      const source = images[index];
-      return previews
-        .filter((preview) => preview.index === index)
-        .map(({ image }) => {
-          for (const name of ['src', 'srcset', 'sizes']) {
-            const value = source.getAttribute(name);
-            if (value == null) image.removeAttribute(name);
-            else image.setAttribute(name, value);
-          }
-          image.alt = '';
-          image.loading = 'eager';
-          return image;
-        });
-    }
-    images.forEach((image, index) => {
-      const source = panes[index].querySelector('[data-tdb-guide-body] img[src]');
-      if (source) {
-        image.src = source.getAttribute('src');
-        image.removeAttribute('srcset');
-        image.removeAttribute('sizes');
-        image.alt = source.alt || image.alt;
-      } else if (
-        index === 0 &&
-        /airflow/i.test(root.querySelector('[data-tdb-guide-treatment]')?.textContent || '')
-      ) {
-        image.src =
-          'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af5a352c97c5a25289b96fc_ems-airflow-prophylaxis-master-dental-barns-lichfield.webp';
-        image.removeAttribute('srcset');
-        image.removeAttribute('sizes');
-        image.alt = 'EMS AIRFLOW Prophylaxis Master used for hygiene care at The Dental Barns.';
-      }
+    frameImages.forEach((image) => {
       image.loading = 'eager';
-      mirror(index);
     });
     function load(index) {
       if (decoded[index]) return Promise.resolve(true);
@@ -461,23 +428,10 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
         decoded[index] = true;
         return Promise.resolve(true);
       }
-      jobs[index] = decode(image)
-        .catch(async (error) => {
-          if (
-            disposed ||
-            !fallbackSources[index] ||
-            image.getAttribute('src') === fallbackSources[index]
-          )
-            throw error;
-          image.src = fallbackSources[index];
-          image.removeAttribute('srcset');
-          image.removeAttribute('sizes');
-          await decode(image);
-        })
-        .then(async () => {
+      jobs[index] = Promise.all([image, ...mirrors].map(decode))
+        .then(() => {
           if (disposed) return false;
-          await Promise.all(mirror(index).map(decode));
-          return (decoded[index] = ready(image));
+          return (decoded[index] = [image, ...mirrors].every(ready));
         })
         .catch(() => false);
       return jobs[index];

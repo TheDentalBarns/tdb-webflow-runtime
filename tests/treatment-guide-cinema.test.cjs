@@ -85,6 +85,11 @@ function setup({
     };
   };
   root.querySelectorAll('.tdb-cinema-image').forEach((image, index) => {
+    // Native Webflow output already contains the CMS image or component default.
+    if (index === 0) {
+      image.src = 'https://example.org/native-cms-camera.webp';
+      image.alt = 'Native CMS photo';
+    }
     const photo = w.document.createElement('div');
     photo.setAttribute('data-tdb-cinema-photo', String(index));
     image.setAttribute('data-swiper-parallax-x', '30%');
@@ -130,8 +135,7 @@ function setup({
       preview.className = 'tdb-cinema-photo is-cinema-ready';
       preview.setAttribute('data-tdb-cinema-preview', String(index));
       preview.setAttribute('aria-hidden', 'true');
-      preview.innerHTML =
-        '<img class="tdb-cinema-image" src="https://example.org/preview.webp" alt=""><div class="tdb-treatment-blur"></div>';
+      preview.innerHTML = `<img class="tdb-cinema-image" src="https://example.org/${index === 0 ? 'native-cms-camera' : 'fallback-4'}.webp" alt=""><div class="tdb-treatment-blur"></div>`;
       preview.getBoundingClientRect = () => ({ left: position * (width + nativeGap) });
       const image = preview.querySelector('img');
       Object.defineProperty(image, 'complete', { value: true });
@@ -367,7 +371,7 @@ test('native widths and gutters position the active photo between decorative edg
   assert.equal(t.rail.style.width, '', 'Designer owns container width');
   assert.equal(t.rail.style.columnGap, '', 'Designer owns the image gutter');
   const previews = [...t.root.querySelectorAll('[data-tdb-cinema-preview]')];
-  assert.match(previews[1].querySelector('img').src, /camera-with-lens/);
+  assert.match(previews[1].querySelector('img').src, /native-cms-camera/);
   t.root.querySelector('[data-tdb-guide-choice="4"]').click();
   t.flush();
   assert.equal(t.rail.style.transform, 'translateX(-4650px)');
@@ -380,7 +384,7 @@ test('native widths and gutters position the active photo between decorative edg
     t.root.querySelector('[data-tdb-cinema-photo]').classList.contains('is-cinema-ready'),
     false,
   );
-  assert.match(previews[1].querySelector('img').src, /preview.webp/);
+  assert.match(previews[1].querySelector('img').src, /native-cms-camera/);
   t.w.close();
 });
 
@@ -461,11 +465,13 @@ test('numbers and keyboard remain aligned with native scroll', () => {
   assert.equal(t.w.document.activeElement, choices[4]);
   t.close();
 });
-test('open drawers suspend chapters; CMS photography wins and lifecycle restores authored images', () => {
+test('open drawers suspend chapters; native CMS images survive lifecycle without rich-text substitution', () => {
   const t = setup(),
     img = t.root.querySelector('.tdb-cinema-image');
-  assert.match(img.src, /camera-with-lens/);
-  assert.equal(img.alt, 'CMS photo');
+  assert.match(img.src, /native-cms-camera/);
+  assert.equal(img.alt, 'Native CMS photo');
+  assert.match(t.root.querySelector('[data-tdb-guide-body] img').src, /camera-with-lens/);
+  assert.match(t.root.querySelector('[data-tdb-cinema-photo="1"] img').src, /fallback-1/);
   assert.equal(img.style.objectFit, '', 'leave image fitting to Designer');
   t.scroll(1002);
   t.w.TDBScrollLock.active = true;
@@ -477,7 +483,7 @@ test('open drawers suspend chapters; CMS photography wins and lifecycle restores
   t.scroll(3000);
   assert.equal(t.root.dataset.tdbCinemaChapter, '4');
   t.api.destroy();
-  assert.match(img.src, /fallback-0/);
+  assert.match(img.src, /native-cms-camera/);
   assert.equal(img.getAttribute('style'), null);
   assert.equal(t.chrome, 0);
   assert.equal(t.destroyed, 1);

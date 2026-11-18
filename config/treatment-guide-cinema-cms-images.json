@@ -1,0 +1,76 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "templatePageId": "678507292f3f5412bfe2b4fa",
+  "componentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+  "collectionId": "6aef7da258cb9e56916c25ad",
+  "treatmentReferenceFieldId": "566a81fc3be8931d9b3159b84e72cae2",
+  "fields": [
+    {
+      "id": "f8b0a2bc6f7935bca003b031a818e0a3",
+      "slug": "technology-image",
+      "name": "Technology image",
+      "type": "Image",
+      "required": false,
+      "propId": "ad18c984-b9c4-a61c-bb1f-6d594dcae20a",
+      "defaultAssetId": "6af5a067a3d3440e03054be7",
+      "elementId": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
+    },
+    {
+      "id": "d6c27f6f70bcea53ace1cd6c0957f8f3",
+      "slug": "process-image",
+      "name": "Process image",
+      "type": "Image",
+      "required": false,
+      "propId": "0246195c-dbc2-918c-8693-3a812a23703f",
+      "defaultAssetId": "6afd92a79bb3ea4d71dbc1e2",
+      "elementId": "1f993975-34cc-19d9-15ec-8c000de58cb3"
+    },
+    {
+      "id": "53f66890735e4662361f6e27850e74e0",
+      "slug": "aftercare-image",
+      "name": "Aftercare image",
+      "type": "Image",
+      "required": false,
+      "propId": "4e7b80c5-49ef-887b-a665-86a8363db2c8",
+      "defaultAssetId": "696a3cd828033c589019ed7f",
+      "elementId": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
+    },
+    {
+      "id": "6a617be74f4db6a35f5237ae2085f3e8",
+      "slug": "questions-image",
+      "name": "Questions image",
+      "type": "Image",
+      "required": false,
+      "propId": "1092fa28-c000-18c5-8527-ac8e366b350c",
+      "defaultAssetId": "6afd92a713a8ba591963e9af",
+      "elementId": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
+    },
+    {
+      "id": "a1962abb3e6b298f37f4d5238be8dcdd",
+      "slug": "practice-image",
+      "name": "Practice image",
+      "type": "Image",
+      "required": false,
+      "propId": "4416b708-f147-77e5-c8be-8c5188b66536",
+      "defaultAssetId": "6afd92a728122f76dc772722",
+      "elementId": "1504bae7-863d-d8cf-cf93-a7661cb27642"
+    }
+  ],
+  "previews": [
+    {
+      "elementId": "fe34a638-ea72-2281-2d73-968ae20875d8",
+      "propId": "4416b708-f147-77e5-c8be-8c5188b66536"
+    },
+    {
+      "elementId": "51c01e96-e72a-715c-7df0-353cb4a06a51",
+      "propId": "ad18c984-b9c4-a61c-bb1f-6d594dcae20a"
+    }
+  ],
+  "populatedImageCount": 6,
+  "ownership": {
+    "cms": "Photographs and optional image replacements",
+    "designer": "Native props, bindings, fallback defaults, structure, typography, crop and responsive layout",
+    "javascript": "Decode readiness and shared animation only"
+  },
+  "privateBackup": "../before-native-cms-images.json"
+}

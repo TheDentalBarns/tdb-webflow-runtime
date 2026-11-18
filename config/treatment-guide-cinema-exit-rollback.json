@@ -1,0 +1,52 @@
+{
+  "previousRuntime": "ab9ce517cec56db59aa6085818d8180cad3fe9c9",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "componentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+  "privateBackup": "../before-exit-fade-order.json",
+  "restoreOrder": [
+    {
+      "id": "678a8a2fd292f9ea2a228b3c",
+      "slug": "composite-bonding",
+      "sorting": 6
+    },
+    {
+      "id": "6af86147179b3f8bf4983384",
+      "slug": "dental-implants",
+      "sorting": 0
+    }
+  ],
+  "collectionId": "678507282f3f5412bfe2b4e6",
+  "removeAttributes": [
+    {
+      "element": "7bcddab1-2896-3118-bca0-b2f660601db9",
+      "names": [
+        "data-tdb-page-break",
+        "data-tdb-parallax-mode",
+        "data-tdb-parallax-progress",
+        "data-tdb-parallax-exit-start",
+        "data-tdb-parallax-exit-end",
+        "data-tdb-parallax-fade-start",
+        "data-tdb-parallax-fade-end",
+        "data-tdb-parallax-reset-start"
+      ]
+    },
+    {
+      "element": "df7bd3ab-1563-3508-7c00-f073f646a555",
+      "names": [
+        "data-tdb-parallax-fade"
+      ]
+    },
+    {
+      "element": "52571075-8a73-e3de-e489-b4d95f69ca65",
+      "names": [
+        "data-tdb-parallax-frame"
+      ]
+    }
+  ],
+  "instructions": [
+    "Restore only the two sorting numbers through staged CMS partial updates; preserve all other fields and item statuses.",
+    "Remove only the listed added native attributes; retain data-tdb-cinema-parallax and aria-hidden.",
+    "Restore all four global runtime references together from the private backup; preserve unrelated subsequent site-code changes.",
+    "Publish only the Webflow subdomain, with customDomains empty. No native layout undo is needed."
+  ]
+}

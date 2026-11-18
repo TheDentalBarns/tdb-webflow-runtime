@@ -1,4 +1,4 @@
-/* TDB shared motion v1.26.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.27.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -819,11 +819,16 @@
           state.geometry = g.signature;
           state.y = clamp(state.y, g.low, g.high);
           if (scroll > 1) state.hasLeftTop = true;
-          if (state.resetAtTop && scroll <= 1 && state.hasLeftTop) {
+          if (
+            (state.resetAtTop && scroll <= 1 && state.hasLeftTop) ||
+            (state.resetAtStart && g.visible && g.alpha === 1)
+          ) {
             // Recover only after leaving the top. Initial mounting and image/font
             // loads must keep the already painted crop, so phased entry does not
             // acquire a second translation. A later non-gesture return still
             // restores the exit fade beneath the transparent navigation.
+            // Opacity-only sticky sections can opt into the same reset at their
+            // own fade start, including a chapter-button return from the exit.
             state.y = g.target;
             state.alpha = g.alpha;
             state.revealAlpha = g.reveal;
@@ -1033,6 +1038,8 @@
         exitFrame: exitRange || reveal ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
         resetAtTop: wrapper.hasAttribute?.('data-tdb-parallax-reset-top'),
+        resetAtStart:
+          opacityOnly && exitRange && wrapper.hasAttribute?.('data-tdb-parallax-reset-start'),
         hasLeftTop: false,
         alpha:
           fadeTargets.length && fadeEnds[0] !== fadeFrom[0]
@@ -1837,7 +1844,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.26.0',
+    version: '1.27.0',
     profile,
     time,
     easing,

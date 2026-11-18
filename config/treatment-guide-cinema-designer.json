@@ -4,6 +4,20 @@
   "siteId": "677cf86cf9952f978d94d80c",
   "componentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
   "backupComponentId": "b2f4a1b3-8de9-3b64-bcde-a1d648f3d86d",
+  "exitMotion": {
+    "owner": "TDBMotion.pageBreaks via the existing gated page-break loader",
+    "wrapper": "7bcddab1-2896-3118-bca0-b2f660601db9",
+    "fadeTarget": "df7bd3ab-1563-3508-7c00-f073f646a555",
+    "nativeHeightReference": "52571075-8a73-e3de-e489-b4d95f69ca65",
+    "mode": "opacity",
+    "progress": "exit",
+    "exitStart": 1,
+    "exitEnd": 0,
+    "fadeStart": 0,
+    "fadeEnd": 1,
+    "resetAtStart": true,
+    "layoutChanges": false
+  },
   "layout": {
     "desktopWidth": "min(94vw, 90rem)",
     "desktopGap": "2rem",
@@ -684,7 +698,7 @@
   ],
   "ownership": {
     "designer": "Structure, responsive widths and gaps, native image crops/previews, typography, spacing, controls and fallback reading panel.",
-    "photosModule": "CMS image population, decode readiness, measured strip travel, shared parallax/blur and lifecycle restoration.",
+    "photosModule": "Decode readiness, measured strip travel, shared parallax/blur and lifecycle restoration; native CMS bindings own all image sources.",
     "chapterModule": "Vertical scroll chapters, animated progress, keyboard/number controls, entrance parallax and site-chrome coordination.",
     "sharedModules": "Existing card/copy motion, native ticker, motion profile and chapter drawer."
   }

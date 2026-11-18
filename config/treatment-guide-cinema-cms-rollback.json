@@ -1,0 +1,41 @@
+{
+  "previousRuntime": "ab9ce517cec56db59aa6085818d8180cad3fe9c9",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "678507292f3f5412bfe2b4fa",
+  "componentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+  "restoreStaticImages": [
+    {
+      "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758",
+      "assetId": "6af5a067a3d3440e03054be7"
+    },
+    {
+      "element": "1f993975-34cc-19d9-15ec-8c000de58cb3",
+      "assetId": "6afd92a79bb3ea4d71dbc1e2"
+    },
+    {
+      "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a",
+      "assetId": "696a3cd828033c589019ed7f"
+    },
+    {
+      "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c",
+      "assetId": "6afd92a713a8ba591963e9af"
+    },
+    {
+      "element": "1504bae7-863d-d8cf-cf93-a7661cb27642",
+      "assetId": "6afd92a728122f76dc772722"
+    },
+    {
+      "element": "fe34a638-ea72-2281-2d73-968ae20875d8",
+      "assetId": "6afd92a728122f76dc772722"
+    },
+    {
+      "element": "51c01e96-e72a-715c-7df0-353cb4a06a51",
+      "assetId": "6af5a067a3d3440e03054be7"
+    }
+  ],
+  "instructions": [
+    "Restore the seven static assetId settings with set_image_asset. Restore the five original altText overrides from the private backup.",
+    "Keep the five optional CMS fields and their item data; do not delete photos uploaded since this migration. Unused props may remain for retry.",
+    "For a complete 2.1.29 rollback also apply treatment-guide-cinema-exit-rollback.json; restore all four runtime pins together and publish staging only."
+  ]
+}

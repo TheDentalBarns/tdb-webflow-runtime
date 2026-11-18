@@ -333,10 +333,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "44d01a39823b5081c1886bdeb39632c1cd3b95bb490d17964f9bfb99c200da63",
-      "raw": 35930,
-      "gzip": 12321,
-      "brotli": 11140
+      "sha256": "0934091855deda72935adab72c7176217a8c4203a3a2f762dc9780e9ce85229b",
+      "raw": 36039,
+      "gzip": 12350,
+      "brotli": 11160
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -694,10 +694,10 @@
         "src/treatment-guide/cinema-photos.js",
         "src/treatment-guide/cinema.js"
       ],
-      "sha256": "75cd9bc15c200f1efb1a293405aa99ecee8f6cfc5b384e3f851c9b944de24719",
-      "raw": 16764,
-      "gzip": 5876,
-      "brotli": 5267
+      "sha256": "c0f74adfc08ff0bbfea7d40cd1a99bad6f633b3aaa9b7d8f852d9d30c6d4e0af",
+      "raw": 15801,
+      "gzip": 5476,
+      "brotli": 4919
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [
