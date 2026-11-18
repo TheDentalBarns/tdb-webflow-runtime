@@ -59,6 +59,9 @@ function setup() {
   stage.prepend(media);
   media.getBoundingClientRect = () => ({ height: height * 0.4 });
   const progress = w.document.createElement('div');
+  const content = w.document.createElement('div');
+  content.className = 'tdb-cinema-content';
+  stage.append(content);
   progress.setAttribute('data-tdb-cinema-progress', '');
   stage.append(progress);
   const progressMoves = [];
@@ -190,6 +193,22 @@ test('native vertical position reaches every chapter, holds the fifth, and suppo
   assert.equal(t.root.dataset.tdbCinemaChapter, '2');
   assert.equal(t.chrome, 1);
   assert.equal(t.frames.size, 0, 'no idle animation loop');
+  t.close();
+});
+
+test('changing chapter returns short-screen copy to its heading without resetting idle reading', () => {
+  const t = setup();
+  const content = t.root.querySelector('.tdb-cinema-content');
+  t.scroll(1002);
+  content.scrollTop = 100;
+  t.scroll(1100);
+  assert.equal(content.scrollTop, 100);
+  t.root.querySelector('[data-tdb-guide-choice="1"]').click();
+  t.flush();
+  assert.equal(content.scrollTop, 0);
+  content.scrollTop = 80;
+  t.scroll(1002);
+  assert.equal(content.scrollTop, 0);
   t.close();
 });
 test('numbers, keyboard and continuation remain aligned with scroll; Skip exits the entire track', () => {

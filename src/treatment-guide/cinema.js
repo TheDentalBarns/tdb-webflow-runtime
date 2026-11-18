@@ -16,6 +16,7 @@
     const parallax = root.querySelector('[data-tdb-cinema-parallax]');
     const media = root.querySelector('.tdb-cinema-media');
     const progress = root.querySelector('[data-tdb-cinema-progress]');
+    const content = root.querySelector('.tdb-cinema-content');
     const parallaxBefore = parallax?.getAttribute('style');
     const progressBefore = progress?.getAttribute('style');
     if (!track || !stage || choices.length !== 5 || panes.length !== 5 || images.length !== 5)
@@ -123,6 +124,8 @@
       animations.forEach((animation) => animation.cancel());
       animations = [];
       active = index;
+      // A short phone may scroll the copy; every new chapter starts at its heading.
+      if (content) content.scrollTop = 0;
       warm(index);
       syncTabs();
       card.update(index, direction, animate);

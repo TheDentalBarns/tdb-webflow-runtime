@@ -833,5 +833,98 @@
       "location": "footer",
       "content": "<script defer data-tdb-start data-tdb-availability-feed=\"https://tdb-public-availability.david-070.workers.dev/\" src=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-start.min.js\"></script>\n<noscript>\n<img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=1326762815429148&ev=PageView&noscript=1\" alt=\"\" />\n</noscript>\n"
     }
+  ],
+  "styleActions": [
+    {
+      "label": "Restore original guide art display",
+      "update_style": {
+        "style_name": "treatment-guide_dial-art",
+        "properties": [
+          {
+            "property_name": "display",
+            "property_value": "block"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore original guide arrow display",
+      "update_style": {
+        "style_name": "treatment-guide_arrows",
+        "properties": [
+          {
+            "property_name": "display",
+            "property_value": "flex"
+          }
+        ]
+      }
+    }
+  ],
+  "legacyStylesBefore": [
+    {
+      "id": "6b5a65b6-dcb0-a81e-337c-ec1a1c21d85c",
+      "name": "treatment-guide_arrows",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".treatment-guide_arrows",
+      "properties": {
+        "base": {
+          "properties": {
+            "z-index": "4",
+            "display": "flex",
+            "box-sizing": "border-box",
+            "width": "100%",
+            "height": "3rem",
+            "padding-bottom": "0px",
+            "justify-content": "space-between",
+            "align-items": "center",
+            "align-self": "center",
+            "justify-self": "stretch",
+            "pointer-events": "none",
+            "column-gap": ".75rem",
+            "grid-column-end": "2",
+            "grid-column-start": "1",
+            "grid-row-end": "3",
+            "grid-row-start": "2"
+          }
+        }
+      }
+    },
+    {
+      "id": "1aa5ddde-2b10-598d-c6fe-e42806d6fa03",
+      "name": "treatment-guide_dial-art",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".treatment-guide_dial-art",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "relative",
+            "z-index": "4",
+            "width": "100vw",
+            "height": "6rem",
+            "max-width": "none",
+            "margin-top": "0px",
+            "margin-right": "calc(50% - 50vw)",
+            "margin-bottom": "0px",
+            "margin-left": "calc(50% - 50vw)",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px",
+            "align-self": "start",
+            "justify-self": "center",
+            "aspect-ratio": "auto",
+            "pointer-events": "none",
+            "grid-column-end": "2",
+            "grid-column-start": "1",
+            "grid-row-end": "2",
+            "grid-row-start": "1"
+          }
+        }
+      }
+    }
   ]
 }
