@@ -432,9 +432,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         image.removeAttribute('sizes');
         image.alt = 'EMS AIRFLOW Prophylaxis Master used for hygiene care at The Dental Barns.';
       }
-      const product = /scanner|trios|camera-with-lens|prophylaxis-master/i.test(image.src);
-      image.style.objectFit = product ? 'contain' : 'cover';
-      image.style.objectPosition = product ? '50% 20%' : index === 1 ? '40% 35%' : '50% 35%';
+      // Cropping stays Designer-owned so every photo reaches the top of the stage.
       image.loading = index < 2 ? 'eager' : 'lazy';
       choices[index].setAttribute(
         'aria-label',

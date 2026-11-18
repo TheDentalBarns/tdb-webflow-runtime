@@ -171,7 +171,7 @@ test('open drawers suspend chapters; CMS photography wins and lifecycle restores
     img = t.root.querySelector('.tdb-cinema-image');
   assert.match(img.src, /camera-with-lens/);
   assert.equal(img.alt, 'CMS photo');
-  assert.equal(img.style.objectFit, 'contain');
+  assert.equal(img.style.objectFit, '', 'leave image fitting to Designer');
   t.scroll(1002);
   t.w.TDBScrollLock.active = true;
   t.scroll(3000);

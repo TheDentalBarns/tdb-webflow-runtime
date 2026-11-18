@@ -16,7 +16,8 @@
           "properties": {
             "overflow": "hidden",
             "width": "100%",
-            "margin": "0px"
+            "margin": "0px",
+            "margin-bottom": "1.25rem"
           }
         }
       }
@@ -39,7 +40,7 @@
             "margin": "0px",
             "justify-content": "flex-start",
             "align-items": "center",
-            "bottom": "calc(7rem + 100lvh - 100svh)"
+            "bottom": "calc(8.5rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
           }
         }
       }
@@ -182,7 +183,7 @@
             "align-items": "stretch",
             "grid-column-gap": ".25rem",
             "transform": "translateX(-50%)",
-            "bottom": "calc(3.7rem + 100lvh - 100svh)",
+            "bottom": "calc(5rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))",
             "margin": "0px"
           }
         }
@@ -315,7 +316,7 @@
             "pointer-events": "none",
             "left": "0",
             "right": "0",
-            "bottom": "calc(100lvh - 100svh)"
+            "bottom": "calc(100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
           }
         }
       }
@@ -403,16 +404,16 @@
             "position": "absolute",
             "left": "5vw",
             "right": "5vw",
-            "bottom": "calc(13rem + 100lvh - 100svh)",
+            "bottom": "calc(13rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))",
             "z-index": "2",
-            "display": "flex",
+            "display": "block",
             "max-width": "46rem",
             "flex-direction": "column",
             "align-items": "flex-start",
             "grid-row-gap": "1.25rem",
             "color": "#f9f2e6",
             "text-align": "left",
-            "max-height": "calc(100% - 16rem - 100lvh + 100svh)",
+            "max-height": "calc(100% - 16rem - 100lvh + 100svh - env(safe-area-inset-bottom, 0px))",
             "overflow-y": "auto",
             "overflow-x": "hidden"
           }
@@ -461,7 +462,9 @@
             "letter-spacing": ".15em",
             "text-decoration": "none",
             "text-transform": "uppercase",
-            "white-space": "nowrap"
+            "white-space": "nowrap",
+            "min-width": "44px",
+            "justify-content": "center"
           }
         }
       }
@@ -495,7 +498,7 @@
         "base": {
           "properties": {
             "position": "absolute",
-            "top": "2.5rem",
+            "top": "calc(2.5rem + env(safe-area-inset-top, 0px))",
             "right": "5vw",
             "z-index": "5",
             "display": "flex",
@@ -2730,5 +2733,61 @@
       "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
       "element": "7e80d013-1e7f-b7fc-3d08-d034d77c7d0a"
     }
-  ]
+  ],
+  "addedAnchors": [
+    {
+      "id": {
+        "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "element": "458bd793-b2d4-aafe-eb82-04eda1ea9e69"
+      },
+      "type": "Block",
+      "attributes": {
+        "id": "treatment-cinema",
+        "aria-hidden": "true"
+      },
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      }
+    },
+    {
+      "id": {
+        "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "element": "f254b7bb-4abf-a19d-54ea-6ba17a9c345e"
+      },
+      "type": "Block",
+      "attributes": {
+        "id": "tdb-cinema-end",
+        "tabindex": "-1"
+      },
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      }
+    }
+  ],
+  "finalNativeOverrides": {
+    "tdb-cinema-copy": {
+      "bottom": "calc(13rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))",
+      "max-height": "calc(100% - 16rem - 100lvh + 100svh - env(safe-area-inset-bottom, 0px))"
+    },
+    "tdb-cinema-details": {
+      "bottom": "calc(8.5rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
+    },
+    "tdb-cinema-numbers": {
+      "bottom": "calc(5rem + 100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
+    },
+    "tdb-cinema-footer": {
+      "bottom": "calc(100lvh - 100svh + env(safe-area-inset-bottom, 0px))"
+    },
+    "tdb-cinema-pagination": {
+      "top": "calc(2.5rem + env(safe-area-inset-top, 0px))"
+    }
+  }
 }

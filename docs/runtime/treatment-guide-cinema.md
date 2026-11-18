@@ -1,4 +1,4 @@
-# Treatment guide Cinema — staging v2.1.20
+# Treatment guide Cinema — staging v2.1.21
 
 The treatment template keeps its five CMS titles, summaries and full chapter drawers. Cinema replaces the detached number strip with a full-height photographic stage. The shared native ticker displays the chapter at the top right; only numbers appear at the bottom. The CTA stays in a fixed position while its existing artwork tickers. Images and headings travel using TDBMotion; summaries use the shared copy fades.
 
