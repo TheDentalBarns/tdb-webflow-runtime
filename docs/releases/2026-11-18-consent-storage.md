@@ -32,4 +32,20 @@ state, later cross-tab changes and a fresh document. It runs against source, the
 bundle and the compatibility consent bundle. Existing journey tests cover map
 and routing under essential-only permission.
 
-Staging verification and physical-device limits are recorded after publication.
+Published to staging at 11:06 UTC on 18 November using commit
+`0d9eeefe08096d002261734431de9f082f57c45c`. All 86 declared CDN assets match Git;
+all four install references use the same commit. Build, Swiper, generated parity
+and formatting pass. The suite has 1,275 tests: 1,272 passes, three existing skips
+and zero failures. Twelve storage cases cover source and both built entry paths.
+
+At 390×844, saved Essential only loaded the map and calculated a journey from
+Lichfield (10 minutes / 4.6 miles in that test). No Vimeo frame or console error
+was present. The Home campaign still settled at viewport top zero with an 844px
+panel, dark navbar and poster fallback under Essential only. The prior full
+consent check also loaded the map; withdrawing targeting confirmed the existing
+Brevo reload and map restart. Production publication timestamps remain
+14 November at 15:29 UTC.
+
+No physical Gmail or Instagram browser was available. Restricted cookie access
+is covered by deterministic regressions, and the mobile layout by the browser;
+neither establishes that every in-app browser restriction has been reproduced.
