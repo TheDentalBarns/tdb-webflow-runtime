@@ -11,7 +11,7 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment', 'article
       `<div id="All-treatments"><section
       class="parallax-swiper_component ${kind === 'services' ? 'tdb-service-parallax' : 'tdb-banner-parallax'}"
       ${kind === 'native-treatment' || article ? 'data-tdb-treatment' : ''}
-      ${article ? 'data-tdb-progress-placement="active-card"' : ''}>
+      ${article ? 'data-tdb-progress-placement="focus-frame"' : ''}>
       <div class="swiper"><div class="swiper-wrapper">
         <div class="swiper-slide" data-swiper-slide-index="0"></div>
         <div class="swiper-slide" data-swiper-slide-index="1"></div>
@@ -73,7 +73,7 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment', 'article
       const track = root.querySelector('[data-tdb-native-progress],.tdb-service-progress');
       track.getBoundingClientRect = () => ({ width: cardWidth });
       paint();
-      if (article) assert.equal(track.parentElement, slides[0].firstElementChild);
+      assert.equal(track.parentElement, root);
       if (native) {
         for (const property of ['top', 'left', 'width']) assert.equal(track.style[property], '');
       } else {
@@ -86,7 +86,7 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment', 'article
       assert.equal(track.firstElementChild.style.transform, 'translateX(0px)');
       active = 1;
       paint();
-      if (article) assert.equal(track.parentElement, slides[1].firstElementChild);
+      assert.equal(track.parentElement, root);
       assert.equal(track.firstElementChild.style.transform, `translateX(${width}px)`);
       assert.equal(track.children[1].style.transform, `translateX(${-width}px)`);
     } finally {

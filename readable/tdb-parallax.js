@@ -1749,8 +1749,7 @@ window.TDBParallaxProgress ||= (() => {
       l = s?.firstElementChild || document.createElement('span');
     s || ((d.className = 'tdb-service-progress'), (l.className = 'tdb-service-progress-fill'));
     const c = s?.children[1] || l.cloneNode();
-    const inCard = s && r.getAttribute('data-tdb-progress-placement') === 'active-card';
-    const originalSibling = inCard && d.nextSibling;
+    const focusFrame = r.getAttribute('data-tdb-progress-placement') === 'focus-frame';
     const stamps = window.TDBTreatmentStamps?.prepare(r);
     const details = window.TDBTreatmentDetails?.prepare(r);
     const ticker = window.TDBTreatmentTicker?.prepare(r);
@@ -1777,7 +1776,6 @@ window.TDBParallaxProgress ||= (() => {
       // Both native sliders share this rule; track/slide/copy changes still wake
       // progress, including treatment width transitions and detail reveals.
       relevantMutation: (record) =>
-        !(inCard && d.contains(record.target)) &&
         !(
           r.matches(e) &&
           record.type === 'attributes' &&
@@ -1786,17 +1784,6 @@ window.TDBParallaxProgress ||= (() => {
         ),
       paint: function () {
         const e = f;
-        if (inCard && swiper) {
-          // Keep one native rail when Swiper rebuilds its loop copies at a breakpoint.
-          if (e)
-            for (const copy of i.querySelectorAll('[data-tdb-native-progress]'))
-              if (copy !== d) copy.remove();
-          const card = swiper.slides[swiper.activeIndex]?.querySelector('.tdb-treatment-card');
-          if (card && d.parentNode !== card) {
-            card.append(d);
-            w = true;
-          }
-        }
         if (
           (e &&
             ((h = [...i.children]
@@ -1850,7 +1837,7 @@ window.TDBParallaxProgress ||= (() => {
                 );
               })(t)
             : null,
-          s = inCard
+          s = focusFrame
             ? !swiper?.params.centeredSlides
             : o && (innerWidth < 768 || innerWidth >= 992),
           u = t.left + (s ? 0 : t.width / 2);
@@ -1933,7 +1920,6 @@ window.TDBParallaxProgress ||= (() => {
     }
     (E.observe(n), document.addEventListener('visibilitychange', A));
     const B = new ResizeObserver(S);
-    if (inCard) B.observe(d);
     // Font/gutter changes can resize the CMS strip without changing the main
     // image frame. Keep loop distance current before recycling any stamp copies.
     if (stamps) {
@@ -1967,7 +1953,6 @@ window.TDBParallaxProgress ||= (() => {
       ticker?.dispose(fromSwiper);
       document.removeEventListener('visibilitychange', A);
       window.removeEventListener('resize', S);
-      if (inCard) r.insertBefore(d, originalSibling?.parentNode === r ? originalSibling : null);
       if (s) d.classList.remove('is-ready');
       else d.remove();
       t.delete(r);
