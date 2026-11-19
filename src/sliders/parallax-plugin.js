@@ -303,7 +303,7 @@
       x.on('loopFix', () => {
         M = !1;
       }));
-    let I = (m || h) && !g?.skipEntry;
+    let I = (m || h) && !g?.skipEntry && e.getAttribute('data-tdb-entry') !== 'manual';
     function C(e, t) {
       e &&
         ((function (e) {

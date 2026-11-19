@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture({ portrait = false } = {}) {
+function fixture({ portrait = false, manualEntry = false } = {}) {
   const dom = new JSDOM(
     '<section class="parallax-swiper_component" data-tdb-treatment data-tdb-banner-parallax data-tdb-treatment-postage data-tdb-treatment-loop="false">' +
       '<div class="swiper"><div class="swiper-wrapper">' +
@@ -16,6 +16,7 @@ function fixture({ portrait = false } = {}) {
   );
   const w = dom.window,
     root = w.document.querySelector('section');
+  if (manualEntry) root.setAttribute('data-tdb-entry', 'manual');
   const timers = new Map(),
     events = {},
     calls = [];
@@ -151,6 +152,21 @@ test('desktop entrance uses visibility gating; portrait retains immediate entry'
     try {
       assert.equal(f.entry.observe, !portrait);
       assert.equal(f.entry.immediate, portrait);
+    } finally {
+      f.close();
+    }
+  }
+});
+
+test('manual-entry carousels open with their first card at rest', () => {
+  for (const portrait of [false, true]) {
+    const f = fixture({ portrait, manualEntry: true });
+    try {
+      assert.equal(f.entry, undefined);
+      assert.equal(f.swiper.realIndex, 0);
+      assert.equal(f.root.classList.contains('tdb-entry-pending'), false);
+      f.swiper.slideNext();
+      assert.equal(f.swiper.realIndex, 1);
     } finally {
       f.close();
     }

@@ -3,13 +3,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-for (const kind of ['services', 'native-treatment', 'legacy-treatment']) {
+for (const kind of ['services', 'native-treatment', 'legacy-treatment', 'article']) {
   test(`${kind} progress preserves its layout owner and follows the visible slide`, () => {
     const native = kind !== 'legacy-treatment';
+    const article = kind === 'article';
     const dom = new JSDOM(
       `<div id="All-treatments"><section
       class="parallax-swiper_component ${kind === 'services' ? 'tdb-service-parallax' : 'tdb-banner-parallax'}"
-      ${kind === 'native-treatment' ? 'data-tdb-treatment' : ''}>
+      ${kind === 'native-treatment' || article ? 'data-tdb-treatment' : ''}
+      ${article ? 'data-tdb-progress-placement="active-card"' : ''}>
       <div class="swiper"><div class="swiper-wrapper">
         <div class="swiper-slide" data-swiper-slide-index="0"></div>
         <div class="swiper-slide" data-swiper-slide-index="1"></div>
@@ -21,7 +23,7 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment']) {
     try {
       const w = dom.window,
         root = w.document.querySelector('section');
-      if (kind === 'services') root.parentElement.removeAttribute('id');
+      if (kind === 'services' || article) root.parentElement.removeAttribute('id');
       const viewport = root.querySelector('.swiper');
       root.getBoundingClientRect = () => ({ top: 100, left: 20 });
       viewport.getBoundingClientRect = () => ({
@@ -34,9 +36,24 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment']) {
       Object.defineProperty(w.document.documentElement, 'clientWidth', { value: 1000 });
       let active = 0,
         paint;
-      [...root.querySelectorAll('.swiper-slide')].forEach((slide, index) => {
-        slide.getBoundingClientRect = () => ({ left: 20 + (index - active) * 800, width: 800 });
+      const slides = [...root.querySelectorAll('.swiper-slide')];
+      const cardWidth = article ? 560 : 800;
+      slides.forEach((slide, index) => {
+        if (article) slide.innerHTML = '<div class="tdb-treatment-card"></div>';
+        slide.getBoundingClientRect = () => ({
+          left: 20 + (index - active) * cardWidth,
+          width: cardWidth,
+        });
       });
+      if (article)
+        viewport.swiper = {
+          slides,
+          params: { centeredSlides: false },
+          get activeIndex() {
+            return active;
+          },
+          on() {},
+        };
       w.IntersectionObserver = class {
         observe() {}
         disconnect() {}
@@ -54,8 +71,9 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment']) {
       w.eval(fs.readFileSync('src/sliders/parallax-progress.js', 'utf8'));
       w.TDBParallaxProgress.refresh();
       const track = root.querySelector('[data-tdb-native-progress],.tdb-service-progress');
-      track.getBoundingClientRect = () => ({ width: 800 });
+      track.getBoundingClientRect = () => ({ width: cardWidth });
       paint();
+      if (article) assert.equal(track.parentElement, slides[0].firstElementChild);
       if (native) {
         for (const property of ['top', 'left', 'width']) assert.equal(track.style[property], '');
       } else {
@@ -63,11 +81,12 @@ for (const kind of ['services', 'native-treatment', 'legacy-treatment']) {
         assert.equal(track.style.left, '-20px');
         assert.equal(track.style.width, '1000px');
       }
-      const width = native ? 400 : 500;
+      const width = native ? cardWidth / 2 : 500;
       assert.equal(track.firstElementChild.style.width, `${width}px`);
       assert.equal(track.firstElementChild.style.transform, 'translateX(0px)');
       active = 1;
       paint();
+      if (article) assert.equal(track.parentElement, slides[1].firstElementChild);
       assert.equal(track.firstElementChild.style.transform, `translateX(${width}px)`);
       assert.equal(track.children[1].style.transform, `translateX(${-width}px)`);
     } finally {

@@ -295,20 +295,20 @@
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "205d3f400bc2dd7245c85ddd57430579400c029b9c12729e885fd3799cb3ccee",
-      "raw": 27536,
-      "gzip": 8846,
-      "brotli": 7998
+      "sha256": "d79fcd30705c738a3cd7876277a55e49779e81441b641f0ee64fc358d3fcefef",
+      "raw": 27731,
+      "gzip": 8908,
+      "brotli": 8055
     },
     "dist/tdb-logo-marquee.min.js": {
       "sources": [
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "205d3f400bc2dd7245c85ddd57430579400c029b9c12729e885fd3799cb3ccee",
-      "raw": 27536,
-      "gzip": 8846,
-      "brotli": 7998
+      "sha256": "d79fcd30705c738a3cd7876277a55e49779e81441b641f0ee64fc358d3fcefef",
+      "raw": 27731,
+      "gzip": 8908,
+      "brotli": 8055
     },
     "dist/tdb-modules.js": {
       "sources": [
@@ -374,10 +374,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "0f5becb9c2b39feafe8ca814147825bb34e7fb63bfa33f748018dc4f47a33d5d",
-      "raw": 46623,
-      "gzip": 14621,
-      "brotli": 13162
+      "sha256": "c88114aece7805414dd99c8a2ed2f3b0f7a610c53d230ba42d4c1f083def41c5",
+      "raw": 47075,
+      "gzip": 14789,
+      "brotli": 13295
     },
     "dist/tdb-partner-card.js": {
       "sources": [

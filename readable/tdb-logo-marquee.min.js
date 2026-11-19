@@ -341,10 +341,13 @@
         centre: scrollX + innerWidth / 2,
         copies: copies.map((item) => {
           const logo = item.querySelector(CONFIG.logoSelector);
+          const artwork = logo && getComputedStyle(logo);
           return {
             item: rect(item),
             logo: logo ? rect(logo) : null,
             src: logo?.currentSrc || logo?.src,
+            fit: artwork?.objectFit,
+            position: artwork?.objectPosition,
           };
         }),
       };
@@ -375,6 +378,9 @@
       const copy = nearest('logo');
       if (copy && spotlight) {
         if (spotlight.getAttribute('src') !== copy.src) spotlight.setAttribute('src', copy.src);
+        if (spotlight.style.objectFit !== copy.fit) spotlight.style.objectFit = copy.fit;
+        if (spotlight.style.objectPosition !== copy.position)
+          spotlight.style.objectPosition = copy.position;
         writePosition(spotlight, 'left', copy.logo.left + renderedX);
         writePosition(spotlight, 'top', copy.logo.top);
         writePosition(spotlight, 'width', copy.logo.width);
