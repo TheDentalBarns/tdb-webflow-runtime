@@ -392,10 +392,10 @@
       "sources": [
         "src/people/profile.js"
       ],
-      "sha256": "8649610870e9b238f6f7754d9f879cc8b940f00011fa97196f041433bed444c2",
-      "raw": 6379,
-      "gzip": 2506,
-      "brotli": 2188
+      "sha256": "b0b736475dd64d50184cc22bce4022027ef8b0bcb054dd724b142d36bd01f4c8",
+      "raw": 2789,
+      "gzip": 1226,
+      "brotli": 1047
     },
     "dist/tdb-quote-carousel.js": {
       "sources": [
@@ -599,10 +599,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "71ee0b6abc2d0d0fde2faf1ee8a5515f96e30b7e9869f0b9530d0bc1473132a4",
-      "raw": 97666,
-      "gzip": 26316,
-      "brotli": 22581
+      "sha256": "535cf485e5df8ebf8b5e66c7f3df572476c7b1854355f5ac9a4797ed76f6abcc",
+      "raw": 97623,
+      "gzip": 26308,
+      "brotli": 22565
     },
     "dist/tdb-service-awards.js": {
       "sources": [

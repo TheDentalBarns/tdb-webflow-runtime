@@ -4449,9 +4449,8 @@ const TDBFeatureStartup = (() => {
     let incomplete = false;
     flight = (async () => {
       const failures = [];
-      // The native review and article carousels discover their CMS rows on startup.
-      // Resolve a marked profile's selections first so they see the right slides.
-      const profile = document.querySelector?.('template[data-tdb-person-profile]');
+      // Prepare the clinician's review excerpts before the shared review carousel starts.
+      const profile = document.querySelector?.('[data-tdb-person-profile]');
       const profileAllowed = () => active() && window.TDBConsent?.allows();
       if (profile && profileAllowed()) {
         try {
@@ -5003,7 +5002,6 @@ function createHomeScrollTest() {
     window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();
     window.TDBSmileFeatureLoader?.destroy();
-    window.TDBPersonProfile?.destroy();
     window.TDBBlogFeatureLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach((owner) => owner.destroy());

@@ -11,11 +11,11 @@ function fixture(profile) {
     window:{dispatchEvent:event=>events.push(event)}, console:{warn:(...args)=>warnings.push(args)},
     CustomEvent:class {constructor(type, options){this.type=type;this.detail=options.detail;}}});
   if(profile) {
-    context.document.querySelector=()=>profile.template;
+    context.document.querySelector=selector=>selector==='[data-tdb-person-profile]' ? profile.root : null;
     context.TDBRuntimeModuleRoot='https://example.test/dist/';
     context.window.TDBConsent={allows:()=>profile.allowed};
     context.window.TDBModules={load:async url=>{profile.assets.push(url.href); await profile.gate;}};
-    context.window.TDBPersonProfile={mount:template=>{assert.equal(template,profile.template);calls.push('profile');}};
+    context.window.TDBPersonProfile={mount:root=>{assert.equal(root,profile.root);calls.push('profile');}};
   }
   for(const name of names) context[name] = Object.defineProperty(function(){calls.push(name);if(name===names[1]&&fail)throw Error('feature failed');},'name',{value:name});
   vm.runInContext(source+'\nthis.startup=TDBFeatureStartup;',context);
@@ -42,7 +42,7 @@ test('profile CMS preparation is consent-released and finishes before native sli
   const schedule=fn=>Promise.resolve().then(fn);
   for(const allowed of [false,true]){
     let release;
-    const profile={allowed,assets:[],template:{},gate:new Promise(resolve=>{release=resolve;})};
+    const profile={allowed,assets:[],root:{},gate:new Promise(resolve=>{release=resolve;})};
     const f=fixture(profile); f.recover();
     const running=f.start(schedule);
     await new Promise(resolve=>setImmediate(resolve));
@@ -54,21 +54,22 @@ test('profile CMS preparation is consent-released and finishes before native sli
 });
 test('withdrawing consent while the profile module is in flight does not mount the profile',async()=>{
   let release;
-  const profile={allowed:true,assets:[],template:{},gate:new Promise(resolve=>{release=resolve;})};
+  const profile={allowed:true,assets:[],root:{},gate:new Promise(resolve=>{release=resolve;})};
   const f=fixture(profile); f.recover();
   const pending=f.start(fn=>Promise.resolve().then(fn));
   await new Promise(resolve=>setImmediate(resolve));
   profile.allowed=false; release(); await pending;
   assert.deepEqual(f.calls,names);
 });
-test('the native People installation contributes only styles and inert article markup before consent',()=>{
+test('the Team template leaves article markup and layout to the native Webflow component',()=>{
   const {JSDOM}=require('jsdom');
   const markup=fs.readFileSync('src/people/template.html','utf8');
   const page=new JSDOM(markup);
   try {
     const doc=page.window.document;
     assert.equal(doc.querySelectorAll('script,link,[onload]').length,0);
-    assert.equal(doc.querySelectorAll('template[data-tdb-person-profile]').length,1);
+    assert.equal(doc.querySelectorAll('template').length,0);
+    assert.ok(!markup.includes('latest-articles'));
     assert.ok(!markup.includes('tdb-smile-feed.css'));
   } finally { page.window.close(); }
 });

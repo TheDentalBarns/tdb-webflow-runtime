@@ -7,63 +7,6 @@
   :is(#founder-story, #first-appointment) .button.is-secondary:is(:hover, :focus-visible) {
     color: #222; background-color: #fff;
   }
-  #latest-articles [data-value="date"] { display: none !important }
   .section_header111 .benefit_icon[src$="_tdb-icon-heart.svg"] { object-fit: contain; transform: scale(.92) }
   .tdb-supporting-cta-copy > .text-size-small + .text-size-small { margin-top: 1rem }
-  #latest-articles .tdb-treatment-progress {
-    inset: auto auto 0 0;
-    background-color: #f9f2e633;
-    -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
-  }
-  #latest-articles .tdb-treatment-marker {
-    background-color: #f9f2e6cc;
-    -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
-  }
-  #latest-articles [data-article-publisher] {
-    position: absolute; top: .25rem; right: 2rem;
-    width: clamp(6rem, 8vw, 8.5rem); height: auto; aspect-ratio: 1;
-    object-fit: contain; filter: brightness(0) invert(1);
-    pointer-events: none; opacity: 0; visibility: hidden;
-    transition: opacity .35s ease;
-  }
-  #latest-articles [data-tdb-treatment]:not(.is-moving) .swiper-slide-active [data-article-publisher][src] {
-    visibility: visible; opacity: 1;
-  }
-  @media (max-width: 991px) {
-    #latest-articles .tdb-treatment-viewport { width: round(nearest, 100%, 1px) }
-    #latest-articles .tdb-treatment-progress { width: 100% }
-    #latest-articles [data-article-publisher] { top: 0; right: 1.25rem; width: 4.5rem }
-    #latest-articles .tdb-treatment-title { max-width: calc(100% - 5.25rem) }
-  }
-  #latest-articles {
-    --article-action-side: 1.25rem;
-    --article-action-bottom: 1.25rem;
-  }
-  #latest-articles [data-tdb-service-layout="portrait"] { --article-action-bottom: 2.5rem }
-  #latest-articles [data-tdb-service-layout]:not([data-tdb-service-layout="desktop"]) .tdb-treatment-cta {
-    padding-inline: var(--article-action-side); padding-bottom: var(--article-action-bottom);
-  }
-  #latest-articles [data-tdb-service-layout]:not([data-tdb-service-layout="desktop"]) .tdb-service-controls {
-    width: auto; padding: 0;
-    inset: auto var(--article-action-side) var(--article-action-bottom) auto; transform: none;
-  }
-  #latest-articles [data-tdb-service-layout]:not([data-tdb-service-layout="desktop"]) .tdb-service-buttons {
-    justify-content: flex-end; width: auto; column-gap: .75rem;
-  }
 </style>
-<template id="profile-featured-slide" data-tdb-person-profile>
-  <div role="listitem" class="swiper-slide tdb-treatment-slide w-dyn-item">
-    <div class="tdb-treatment-card">
-      <div class="tdb-treatment-image-wrap">
-        <div class="tdb-treatment-overlay"></div>
-        <img loading="lazy" data-swiper-parallax-x="30%" class="tdb-treatment-image">
-      </div>
-      <div class="tdb-treatment-content">
-        <h3 class="tdb-treatment-title"></h3>
-        <div data-tdb-service-copy="" class="tdb-treatment-copy"><p class="tdb-treatment-paragraph"></p></div>
-        <a aria-hidden="true" class="tdb-treatment-source w-inline-block"></a>
-      </div>
-      <div aria-hidden="true" class="tdb-treatment-blur"></div>
-    </div>
-  </div>
-</template>
