@@ -392,10 +392,10 @@
       "sources": [
         "src/people/profile.js"
       ],
-      "sha256": "b0b736475dd64d50184cc22bce4022027ef8b0bcb054dd724b142d36bd01f4c8",
-      "raw": 2789,
-      "gzip": 1226,
-      "brotli": 1047
+      "sha256": "3af9fc31ee06819e4c19d55396ce80ede8bd4181e34cecb37cc27847fea203a3",
+      "raw": 2326,
+      "gzip": 1033,
+      "brotli": 871
     },
     "dist/tdb-quote-carousel.js": {
       "sources": [

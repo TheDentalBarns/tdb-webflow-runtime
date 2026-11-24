@@ -61,15 +61,47 @@ test('withdrawing consent while the profile module is in flight does not mount t
   profile.allowed=false; release(); await pending;
   assert.deepEqual(f.calls,names);
 });
-test('the Team template leaves article markup and layout to the native Webflow component',()=>{
+test('the Team template leaves layout and CMS markup to native Webflow components',()=>{
   const {JSDOM}=require('jsdom');
   const markup=fs.readFileSync('src/people/template.html','utf8');
   const page=new JSDOM(markup);
   try {
     const doc=page.window.document;
-    assert.equal(doc.querySelectorAll('script,link,[onload]').length,0);
+    assert.equal(doc.querySelectorAll('script,style,link,[onload]').length,0);
     assert.equal(doc.querySelectorAll('template').length,0);
     assert.ok(!markup.includes('latest-articles'));
     assert.ok(!markup.includes('tdb-smile-feed.css'));
   } finally { page.window.close(); }
+});
+
+test('the native review holder opens only for a matching clinician after consent', () => {
+  const { JSDOM } = require('jsdom');
+  const script = fs.readFileSync('src/people/profile.js', 'utf8');
+  const markup = `<main><div class="tdb-first-review-break"><div data-tdb-profile-review-holder hidden>
+    <section data-tdb-review-section><div data-tdb-review-quotes><div data-tdb-team-track>
+      <article data-tdb-team-slide><button data-tdb-team-content><span data-tdb-team-text></span>
+        <span data-tdb-quotes-name></span></button></article></div><span data-tdb-team-total></span></div></section>
+    </div></div><div data-profile-source="reviews" hidden><div data-profile-values>
+      <span data-value="person">clinician-a</span><span data-value="quote">A patient’s words.</span>
+      <span data-value="review">review-a</span><span data-value="author">Patient A</span></div></div></main>`;
+  for (const person of ['clinician-a', 'clinician-b']) {
+    const page = new JSDOM(markup, { url: 'https://example.test/team-members/' + person, runScripts: 'outside-only' });
+    try {
+      const { document } = page.window;
+      const holder = document.querySelector('[data-tdb-profile-review-holder]');
+      const root = document.querySelector('main');
+      let allowed = false;
+      page.window.TDBConsent = { allows: () => allowed };
+      page.window.eval(script);
+      page.window.TDBPersonProfile.mount(root);
+      assert.equal(holder.hidden, true);
+      allowed = true;
+      page.window.TDBPersonProfile.mount(root);
+      const card = holder.querySelector('[data-tdb-team-slide]');
+      assert.equal(holder.hidden, person !== 'clinician-a');
+      assert.equal(card?.textContent.includes('A patient’s words.') ?? false, person === 'clinician-a');
+      page.window.TDBPersonProfile.mount(root);
+      assert.equal(holder.querySelector('[data-tdb-team-slide]'), card);
+    } finally { page.window.close(); }
+  }
 });

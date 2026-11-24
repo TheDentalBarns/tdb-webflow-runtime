@@ -6,22 +6,6 @@
     const text = element?.querySelector('[data-value="' + key + '"]')?.textContent.trim() || '';
     return text.includes('{{') ? '' : text;
   };
-  function prepareParagraphs() {
-    for (const copy of document.querySelectorAll('.tdb-supporting-cta-copy > p.text-size-small')) {
-      const paragraphs = copy.textContent
-        .trim()
-        .split(/\n\s*\n/)
-        .filter(Boolean);
-      if (paragraphs.length < 2) continue;
-      copy.replaceWith(
-        ...paragraphs.map((text) => {
-          const paragraph = copy.cloneNode(false);
-          paragraph.textContent = text.trim();
-          return paragraph;
-        }),
-      );
-    }
-  }
   function prepareGallery() {
     const section = document.getElementById('patient-stories');
     if (!section) return;
@@ -37,7 +21,7 @@
   function prepareReviews(profile) {
     const outer = document.querySelector('.tdb-first-review-break [data-tdb-review-section]');
     const carousel = outer?.querySelector('[data-tdb-review-quotes]');
-    if (!carousel) return;
+    if (!carousel || outer.hasAttribute('data-person-ready')) return;
     const track = carousel.querySelector('[data-tdb-team-track]');
     const sample = track?.querySelector('[data-tdb-team-slide]');
     if (!sample) return;
@@ -89,21 +73,15 @@
     const total = carousel.querySelector('[data-tdb-team-total]');
     if (total) total.textContent = String(cards.length).padStart(2, '0');
     outer.dataset.personReady = '';
+    const holder = outer.closest('[data-tdb-profile-review-holder]');
+    if (holder) holder.hidden = false;
   }
   window.TDBPersonProfile = Object.freeze({
     mount(root) {
       if (!allowed() || !root?.isConnected) return;
       const profile = location.pathname.split('/').filter(Boolean).at(-1);
-      prepareParagraphs();
       prepareGallery();
       prepareReviews(profile);
-      document
-        .querySelectorAll(':is(#founder-story,#first-appointment) .button.is-secondary')
-        .forEach((link) => {
-          link.setAttribute('data-wf--button---secondary--variant', 'white');
-          link.classList.add('w-variant-2c1240b5-df86-fb2f-664d-3ed8a9f54c3f');
-        });
-      document.querySelectorAll('[data-profile-source]').forEach((node) => node.remove());
     },
   });
 })();
