@@ -85,6 +85,7 @@ module.exports = {
   'dist/tdb-hold-audio.js': ['src/components/hold-audio.js'],
   'dist/tdb-instagram-deferred.js': ['src/instagram/deferred.js'],
   'dist/tdb-smile-feed.js': ['src/smile-gallery/feed.js'],
+  'dist/tdb-person-profile.js': ['src/people/profile.js'],
   'dist/tdb-smile-page.js': ['src/smile-gallery/standalone.js'],
   'dist/tdb-blog.js': ['src/shared/module-bootstrap.js', 'src/blog/filters.js'],
   'dist/tdb-instagram-native.min.js': ['src/instagram/native.js'],

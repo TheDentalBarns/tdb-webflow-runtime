@@ -36,6 +36,26 @@ const TDBFeatureStartup = (() => {
     let incomplete = false;
     flight = (async () => {
       const failures = [];
+      // The native review and article carousels discover their CMS rows on startup.
+      // Resolve a marked profile's selections first so they see the right slides.
+      const profile = document.querySelector?.('template[data-tdb-person-profile]');
+      const profileAllowed = () => active() && window.TDBConsent?.allows();
+      if (profile && profileAllowed()) {
+        try {
+          await schedule(
+            () =>
+              profileAllowed() &&
+              window.TDBModules.load(new URL('tdb-person-profile.js', TDBRuntimeModuleRoot), {
+                ready: () => Boolean(window.TDBPersonProfile),
+              }),
+          );
+          if (profileAllowed()) window.TDBPersonProfile.mount(profile);
+        } catch (error) {
+          incomplete = true;
+          failures.push({ feature: 'People profile', error });
+          console.warn('[TDB runtime] Profile CMS selections unavailable.', error);
+        }
+      }
       for (const step of steps) {
         if (!active()) {
           incomplete = true;

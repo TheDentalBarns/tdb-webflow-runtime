@@ -108,6 +108,30 @@
     }
     return payload;
   }
+  function profileSelection(holder, payload) {
+    const profile = holder.closest('[data-tdb-smile-profile]');
+    if (!profile) return payload;
+    const normalize = (value) => (value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const clinician = normalize(
+      profile.getAttribute('data-profile-clinician') || document.querySelector('h1')?.textContent,
+    );
+    const selected = new Set();
+    for (const script of holder.querySelectorAll('script[type="application/ld+json"]')) {
+      try {
+        const image = JSON.parse(script.textContent);
+        if (image['@type'] === 'ImageObject') selected.add(new URL(image.contentUrl).href);
+      } catch {
+        // A missing CMS image cannot select a case.
+      }
+    }
+    const cases = payload.cases.filter(
+      (item) =>
+        clinician &&
+        normalize(item.clinician) === clinician &&
+        selected.has(new URL(item.image.src).href),
+    );
+    return { ...payload, cases, total: cases.length };
+  }
   function decode(src, signal) {
     return new Promise((resolve, reject) => {
       const image = new Image();
@@ -321,8 +345,9 @@
           holder.getAttribute('data-tdb-smile-feed'),
           signal,
           (holder.getAttribute('data-tdb-smile-treatment') || '').trim(),
-        ).then(async (payload) => {
+        ).then(async (feed) => {
           check(holder, signal);
+          const payload = profileSelection(holder, feed);
           // Match the other deferred feed: only entry images, parallel with assets.
           await Promise.all(
             payload.cases.slice(0, 2).map((item) => decode(item.image.src, signal)),
@@ -344,6 +369,13 @@
         }),
       ]);
       check(holder, signal);
+      if (!payload.cases.length) {
+        // Keep the native archive link available for a clinician with no matches.
+        holder.setAttribute('data-smile-state', 'empty');
+        holder.removeAttribute('aria-busy');
+        record.ready = true;
+        return;
+      }
       const root = build(payload);
       record.root = root;
       holder.append(root);

@@ -68,6 +68,37 @@ test('shared gallery treatment prop selects its scoped feed and rejects wrong co
   }finally{bad.close();}
  }
 });
+test('a People gallery decodes only CMS-selected images attributed to the current clinician',async()=>{
+  const x=setup({count:4});
+  try {
+    const section=x.d.createElement('section');
+    section.setAttribute('data-tdb-smile-profile','');
+    section.setAttribute('data-profile-clinician','Dr Keely Thorne');
+    x.holder.before(section); section.append(x.holder);
+    for(const i of [0,1,3]) {
+      const entry=x.d.createElement('script');
+      entry.type='application/ld+json';
+      entry.textContent=JSON.stringify({'@type':'ImageObject',contentUrl:x.payload.cases[i].image.src});
+      x.holder.append(entry);
+    }
+    x.payload.cases[1].clinician='Another clinician';
+    await x.prepare();
+    assert.equal(x.mounts(),1);
+    assert.equal(x.holder.querySelector('[data-tdb-smile-total]').dataset.tdbSmileTotal,'2');
+    assert.deepEqual(x.images,[x.payload.cases[0].image.src,x.payload.cases[3].image.src]);
+  } finally { x.close(); }
+});
+test('a profile without a selected case keeps its holding link and downloads no case images',async()=>{
+  const x=setup();
+  try {
+    x.holder.setAttribute('data-tdb-smile-profile','');
+    await x.prepare();
+    assert.equal(x.mounts(),0);
+    assert.equal(x.images.length,0);
+    assert.equal(x.holder.dataset.smileState,'empty');
+    assert.equal(x.holder.querySelector('a').getAttribute('href'),'/smile-gallery');
+  } finally { x.close(); }
+});
 test('Shared feed preparation mounts directly after dependencies without a second proximity gate',async()=>{
  let release;const x=setup({sliderGate:new Promise(r=>release=r)});try{
   const preparing=x.prepare();await tick();assert.equal(x.mounts(),0);release();await preparing;

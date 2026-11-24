@@ -388,6 +388,15 @@
       "gzip": 2860,
       "brotli": 2437
     },
+    "dist/tdb-person-profile.js": {
+      "sources": [
+        "src/people/profile.js"
+      ],
+      "sha256": "8649610870e9b238f6f7754d9f879cc8b940f00011fa97196f041433bed444c2",
+      "raw": 6379,
+      "gzip": 2506,
+      "brotli": 2188
+    },
     "dist/tdb-quote-carousel.js": {
       "sources": [
         "src/team-quotes/team-quotes.js"
@@ -590,10 +599,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "6e3da815381b9ad32003df2352b72cd805b8743a8bc3fd31715e25243d049bef",
-      "raw": 97210,
-      "gzip": 26214,
-      "brotli": 22499
+      "sha256": "71ee0b6abc2d0d0fde2faf1ee8a5515f96e30b7e9869f0b9530d0bc1473132a4",
+      "raw": 97666,
+      "gzip": 26316,
+      "brotli": 22581
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -617,10 +626,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "b101a9432177f70d8bc4a722d676359b30cde3f48f20d004b3c3ba265a4896a0",
-      "raw": 12081,
-      "gzip": 4105,
-      "brotli": 3579
+      "sha256": "7f4a03479e201fca3a863880c3771b3514e92b95420abee4be51ea3ed70303ce",
+      "raw": 12751,
+      "gzip": 4336,
+      "brotli": 3780
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
